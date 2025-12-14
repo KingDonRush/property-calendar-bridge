@@ -30,3 +30,25 @@ export async function upsertBooking(payload: unknown): Promise<unknown> {
   return data;
 }
 
+export async function getAllSources(): Promise<unknown[]> {
+  const client = getSupabaseClient();
+  const { data, error } = (await client.from("channel_sources").select("*")) as {
+    data: unknown[] | null;
+    error: unknown;
+  };
+  if (error) throw error;
+  return data ?? [];
+}
+
+export async function updateSourceStatus(
+  id: string,
+  patch: Record<string, unknown>
+): Promise<unknown> {
+  const client = getSupabaseClient();
+  const { data, error } = (await client
+    .from("channel_sources")
+    .update(patch as any)
+    .eq("id", id)) as { data: unknown; error: unknown };
+  if (error) throw error;
+  return data;
+}
