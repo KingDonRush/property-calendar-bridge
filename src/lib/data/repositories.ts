@@ -52,3 +52,25 @@ export async function updateSourceStatus(
   if (error) throw error;
   return data;
 }
+
+export async function getMappingByExternalId(externalUid: string): Promise<unknown> {
+  const client = getSupabaseClient();
+  const { data, error } = (await client
+    .from("booking_mappings")
+    .select("*")
+    .eq("external_uid", externalUid)) as { data: unknown; error: unknown };
+  if (error) throw error;
+  if (Array.isArray(data)) return data[0] ?? null;
+  return data ?? null;
+}
+
+export async function createMapping(payload: unknown): Promise<unknown> {
+  const client = getSupabaseClient();
+  const { data, error } = (await client.from("booking_mappings").insert(payload as any)) as {
+    data: unknown;
+    error: unknown;
+  };
+  if (error) throw error;
+  if (Array.isArray(data)) return data[0] ?? null;
+  return data ?? null;
+}
