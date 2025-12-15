@@ -13,6 +13,7 @@ import { renderLoginPage } from "./ui/pages/login";
 import { MAIN_CSS } from "./ui/styles/mainCss";
 import { renderLayout } from "./ui/components/Layout";
 import { renderDashboardPage } from "./ui/pages/Dashboard";
+import { renderSourcesPage } from "./ui/pages/sources";
 
 function normalizeHeaders(headers: http.IncomingHttpHeaders): Record<string, string> {
   const normalized: Record<string, string> = {};
@@ -93,11 +94,17 @@ export async function handler(
     const authResponse = requireAdminSession(request);
     if (authResponse) return sendResponse(nodeResponse, authResponse);
 
-    const html = renderLayout({
-      title: "Dashboard",
-      activePath: "/admin",
-      content: renderDashboardPage(),
-    });
+    let title = "Dashboard";
+    let activePath = "/admin";
+    let content = renderDashboardPage();
+
+    if (url.pathname === "/admin/sources") {
+      title = "Fontes";
+      activePath = "/admin/sources";
+      content = await renderSourcesPage();
+    }
+
+    const html = renderLayout({ title, activePath, content });
 
     return sendResponse(
       nodeResponse,
