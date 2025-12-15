@@ -43,5 +43,14 @@ describe("ui/pages/sources", () => {
     expect(html).toContain("Nenhuma fonte");
     expect(html).not.toContain("<table");
   });
-});
 
+  it("renders a create/edit form with basic fields", async () => {
+    const { renderSourcesPage } = await import("../src/ui/pages/sources");
+    const html = await renderSourcesPage();
+    expect(html).toContain('id="sourceForm"');
+    expect(html).toContain('name="source_name"');
+    expect(html).toContain('name="source_url"');
+    expect(html).toContain('type="url"');
+    expect(html).toContain('name="refresh_rate"');
+  });
+});

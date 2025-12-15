@@ -24,8 +24,30 @@ export async function renderSourcesPage(): Promise<string> {
   const header = `<h1 style="margin: 0 0 12px;">Fontes</h1>
 <p class="muted" style="margin: 0 0 12px;">Total: ${total}</p>`;
 
+  const form = `<form id="sourceForm" class="card" style="margin: 0 0 16px;">
+  <div style="display: grid; gap: 12px; grid-template-columns: 1fr 2fr 140px;">
+    <label>
+      <div class="muted" style="margin: 0 0 4px;">Nome</div>
+      <input class="input" name="source_name" type="text" required />
+    </label>
+    <label>
+      <div class="muted" style="margin: 0 0 4px;">iCal URL</div>
+      <input class="input" name="source_url" type="url" required />
+    </label>
+    <label>
+      <div class="muted" style="margin: 0 0 4px;">Sync (min)</div>
+      <input class="input" name="refresh_rate" type="number" min="0" step="1" value="30" required />
+    </label>
+  </div>
+  <div style="display: flex; gap: 8px; margin-top: 12px;">
+    <button class="btn" type="submit">Salvar</button>
+    <button class="btn secondary" type="button" id="testSourceBtn">Testar fonte</button>
+  </div>
+</form>`;
+
   if (!Array.isArray(sources) || sources.length === 0) {
     return `${header}
+${form}
 <div class="muted">Nenhuma fonte cadastrada.</div>`;
   }
 
@@ -49,6 +71,7 @@ export async function renderSourcesPage(): Promise<string> {
     .join("");
 
   return `${header}
+${form}
 <table class="table">
   <thead>
     <tr>
