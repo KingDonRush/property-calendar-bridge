@@ -24,7 +24,8 @@ function bookingEventUid(booking: Booking): string {
 
 export function generateCalendar(bookings: Booking[], propertyInfo: Property): string {
   const calendar = ical({
-    name: propertyInfo.name
+    name: propertyInfo.name,
+    prodId: { company: "simplePropertyManager", product: "simplePropertyManager", language: "EN" }
   });
 
   calendar.method(ICalCalendarMethod.PUBLISH);
