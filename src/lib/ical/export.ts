@@ -33,13 +33,13 @@ export function generateCalendar(bookings: Booking[], propertyInfo: Property): s
 
   for (const booking of bookings) {
     const uid = bookingEventUid(booking);
-    calendar.createEvent({
+    const event = calendar.createEvent({
       id: uid,
-      uid,
       start: new Date(booking.start_date),
       end: new Date(booking.end_date),
       summary: bookingSummary(booking)
     });
+    event.uid(uid);
   }
 
   return calendar.toString();
