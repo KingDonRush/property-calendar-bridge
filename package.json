@@ -4,6 +4,9 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "start": "node --experimental-specifier-resolution=node dist/src/server.js",
+    "sync:manual": "npm run build && node --experimental-specifier-resolution=node dist/scripts/manual-sync.js",
     "test": "vitest",
     "test:run": "vitest run",
     "typecheck": "tsc -p tsconfig.json --noEmit"
@@ -12,6 +15,10 @@
     "@types/node": "^22.10.2",
     "typescript": "^5.7.3",
     "vitest": "^2.1.8"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.87.1",
+    "ical-generator": "^10.0.0",
+    "node-ical": "^0.22.1"
   }
 }
-
