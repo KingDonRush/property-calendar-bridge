@@ -16,6 +16,12 @@ function bookingSummary(booking: Booking): string {
   }
 }
 
+function bookingEventUid(booking: Booking): string {
+  const externalUid = (booking as any).external_uid ?? (booking as any).source_event_uid;
+  if (typeof externalUid === "string" && externalUid.trim()) return externalUid;
+  return booking.uid;
+}
+
 export function generateCalendar(bookings: Booking[], propertyInfo: Property): string {
   const calendar = ical({
     name: propertyInfo.name
@@ -25,9 +31,10 @@ export function generateCalendar(bookings: Booking[], propertyInfo: Property): s
   calendar.timezone(propertyInfo.timezone);
 
   for (const booking of bookings) {
+    const uid = bookingEventUid(booking);
     calendar.createEvent({
-      id: booking.uid,
-      uid: booking.uid,
+      id: uid,
+      uid,
       start: new Date(booking.start_date),
       end: new Date(booking.end_date),
       summary: bookingSummary(booking)
