@@ -65,7 +65,9 @@ describe("server admin UI routing", () => {
       });
 
       expect(adminResponse.status).toBe(200);
-      expect(await adminResponse.text()).toContain("Admin");
+      const html = await adminResponse.text();
+      expect(html).toContain('href="/assets/main.css"');
+      expect(html).toContain("Dashboard");
     } finally {
       await new Promise<void>((resolve) => server.close(() => resolve()));
     }

@@ -8,6 +8,8 @@ import { POST as jobsSyncPost } from "./app/api/jobs/sync/route";
 import { requireAdminSession } from "./lib/ui-auth/guard";
 import { renderLoginPage } from "./ui/pages/login";
 import { MAIN_CSS } from "./ui/styles/mainCss";
+import { renderLayout } from "./ui/components/Layout";
+import { renderDashboardPage } from "./ui/pages/Dashboard";
 
 function normalizeHeaders(headers: http.IncomingHttpHeaders): Record<string, string> {
   const normalized: Record<string, string> = {};
@@ -49,13 +51,6 @@ async function sendResponse(nodeResponse: http.ServerResponse, response: Respons
   nodeResponse.end(body);
 }
 
-function renderAdminPlaceholder(): Response {
-  return new Response("<!doctype html><html><body><h1>Admin</h1></body></html>", {
-    status: 200,
-    headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" },
-  });
-}
-
 export async function handler(
   nodeRequest: http.IncomingMessage,
   nodeResponse: http.ServerResponse
@@ -94,7 +89,20 @@ export async function handler(
   if (url.pathname === "/admin" || url.pathname.startsWith("/admin/")) {
     const authResponse = requireAdminSession(request);
     if (authResponse) return sendResponse(nodeResponse, authResponse);
-    return sendResponse(nodeResponse, renderAdminPlaceholder());
+
+    const html = renderLayout({
+      title: "Dashboard",
+      activePath: "/admin",
+      content: renderDashboardPage(),
+    });
+
+    return sendResponse(
+      nodeResponse,
+      new Response(html, {
+        status: 200,
+        headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" },
+      })
+    );
   }
 
   if (method === "POST" && url.pathname === "/api/auth/login") {
