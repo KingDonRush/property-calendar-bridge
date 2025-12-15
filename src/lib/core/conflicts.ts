@@ -48,3 +48,31 @@ export function checkDateOverlap(
 
   return aStart < bEnd && bStart < aEnd;
 }
+
+function parseBookingRange(booking: Booking): { start: Date; end: Date } | null {
+  const start = new Date(booking.start_date);
+  const end = new Date(booking.end_date);
+  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) return null;
+  return { start, end };
+}
+
+export function detectConflicts(newBooking: Booking, existingBookings: Booking[]): Conflict[] {
+  const newRange = parseBookingRange(newBooking);
+  if (!newRange) return [];
+
+  const conflicts: Conflict[] = [];
+  for (const existing of existingBookings) {
+    const existingRange = parseBookingRange(existing);
+    if (!existingRange) continue;
+
+    if (checkDateOverlap(newRange.start, newRange.end, existingRange.start, existingRange.end)) {
+      conflicts.push({
+        type: ConflictType.Overlap,
+        severity: ConflictSeverity.Warning,
+        booking: newBooking,
+        conflictingBooking: existing
+      });
+    }
+  }
+  return conflicts;
+}
