@@ -11,6 +11,7 @@ import { GET as adminSyncRunsGet } from "./app/api/admin/sync-runs/route";
 import { GET as adminBookingsGet } from "./app/api/admin/bookings/route";
 import { POST as adminSyncPost } from "./app/api/admin/sync/route";
 import { GET as adminAuditGet } from "./app/api/admin/audit/route";
+import { GET as adminBackupExportGet } from "./app/api/admin/backup/export/route";
 import { POST as jobsSyncPost } from "./app/api/jobs/sync/route";
 import { requireAdminSession } from "./lib/ui-auth/guard";
 import { renderLoginPage } from "./ui/pages/login";
@@ -152,6 +153,10 @@ export async function handler(
 
   if (method === "GET" && url.pathname === "/api/admin/audit") {
     return sendResponse(nodeResponse, await adminAuditGet(request));
+  }
+
+  if (method === "GET" && url.pathname === "/api/admin/backup/export") {
+    return sendResponse(nodeResponse, await adminBackupExportGet(request));
   }
 
   const adminSourcesIdMatch = url.pathname.match(/^\/api\/admin\/sources\/([^/]+)$/);
