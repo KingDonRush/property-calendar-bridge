@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 
 import { IcsParseError, parseIcs, type ParsedIcsEvent } from "./parse";
-import type { Booking } from "../models/types";
+import { BookingStatus, type Booking } from "../models/types";
 
 export type FetchAndParseIcsOptions = {
   timeoutMs?: number;
@@ -21,6 +21,56 @@ export class FetchIcsError extends Error {
 export function bookingHash(booking: Pick<Booking, "uid" | "start_date" | "end_date" | "status">): string {
   const payload = `${booking.uid}|${booking.start_date}|${booking.end_date}|${booking.status}`;
   return createHash("sha256").update(payload).digest("hex");
+}
+
+export type ExternalBookingMapping = {
+  bookingUid: string;
+  lastHash?: string | null;
+};
+
+export type ReconcileDecision =
+  | { action: "skip"; reason: "no_change" | "protected_local" }
+  | { action: "update"; bookingUid: string; booking: Pick<Booking, "uid" | "start_date" | "end_date" | "status"> }
+  | {
+      action: "create";
+      bookingUid: string;
+      booking: Pick<Booking, "uid" | "start_date" | "end_date" | "status">;
+      mapping: { externalUid: string; bookingUid: string; hash: string };
+    };
+
+export function reconcileExternalBooking(args: {
+  incoming: Pick<Booking, "uid" | "start_date" | "end_date" | "status">;
+  existingBooking?: Pick<Booking, "uid" | "start_date" | "end_date" | "status"> | null;
+  existingMapping?: ExternalBookingMapping | null;
+}): ReconcileDecision {
+  const incomingHash = bookingHash(args.incoming);
+
+  if (args.existingMapping && args.existingMapping.lastHash === incomingHash) {
+    return { action: "skip", reason: "no_change" };
+  }
+
+  if (args.existingMapping) {
+    return { action: "update", bookingUid: args.existingMapping.bookingUid, booking: args.incoming };
+  }
+
+  if (
+    args.existingBooking &&
+    args.existingBooking.uid === args.incoming.uid &&
+    args.existingBooking.status === BookingStatus.Blocked
+  ) {
+    return { action: "skip", reason: "protected_local" };
+  }
+
+  if (args.existingBooking && args.existingBooking.uid === args.incoming.uid) {
+    return { action: "update", bookingUid: args.existingBooking.uid, booking: args.incoming };
+  }
+
+  return {
+    action: "create",
+    bookingUid: args.incoming.uid,
+    booking: args.incoming,
+    mapping: { externalUid: args.incoming.uid, bookingUid: args.incoming.uid, hash: incomingHash }
+  };
 }
 
 function isAbortError(error: unknown): boolean {
