@@ -1,17 +1,13 @@
 import { HTTP_STATUS } from "../../../lib/constants";
+import { jsonResponse, wrapApiHandler } from "../../../lib/api/responseHelper";
 
-export function GET(_request: Request): Response {
+function unsafeGET(_request: Request): Response {
   const payload = {
     status: "ok",
     timestamp: new Date().toISOString(),
   };
 
-  return new Response(JSON.stringify(payload), {
-    status: HTTP_STATUS.OK,
-    headers: {
-      "content-type": "application/json; charset=utf-8",
-      "cache-control": "no-store",
-    },
-  });
+  return jsonResponse(payload, { status: HTTP_STATUS.OK });
 }
 
+export const GET = wrapApiHandler(unsafeGET);

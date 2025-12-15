@@ -40,5 +40,31 @@ describe("api/jobs/sync", () => {
     expect(body.ok).toBe(true);
     expect(body.runId).toBe("run_1");
   });
-});
 
+  it("returns 500 with standardized error JSON and logs when sync throws", async () => {
+    process.env.CRON_SECRET_TOKEN = "token";
+    const { POST } = await import("../src/app/api/jobs/sync/route");
+
+    const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    (runSyncJob as any).mockRejectedValueOnce(new Error("boom"));
+
+    const response = await POST(
+      new Request("http://localhost/api/jobs/sync", {
+        method: "POST",
+        headers: { authorization: "Bearer token" },
+      })
+    );
+
+    expect(response.status).toBe(500);
+
+    const body = await response.json();
+    expect(body).toMatchObject({
+      error: true,
+      message: "Internal Server Error",
+      code: "INTERNAL_SERVER_ERROR",
+    });
+
+    expect(consoleSpy).toHaveBeenCalled();
+    consoleSpy.mockRestore();
+  });
+});

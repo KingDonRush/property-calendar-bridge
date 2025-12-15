@@ -2,6 +2,7 @@ import { HTTP_STATUS } from "../../../../../lib/constants";
 import { getIcalMasterSecret } from "../../../../../lib/env";
 import { generateCalendar } from "../../../../../lib/ical/export";
 import type { Property } from "../../../../../lib/models/types";
+import { errorResponse, wrapApiHandler } from "../../../../../lib/api/responseHelper";
 
 type RouteContext = {
   params: {
@@ -9,12 +10,12 @@ type RouteContext = {
   };
 };
 
-export function GET(_request: Request, context: RouteContext): Response {
+function unsafeGET(_request: Request, context: RouteContext): Response {
   const expectedSecret = getIcalMasterSecret();
   const providedSecret = context.params.secret;
 
   if (providedSecret !== expectedSecret) {
-    return new Response("Unauthorized", { status: HTTP_STATUS.UNAUTHORIZED });
+    return errorResponse(HTTP_STATUS.UNAUTHORIZED, "Unauthorized", "UNAUTHORIZED");
   }
 
   const property: Property = { id: "master", name: "Master", timezone: "UTC" };
@@ -29,3 +30,4 @@ export function GET(_request: Request, context: RouteContext): Response {
   });
 }
 
+export const GET = wrapApiHandler(unsafeGET);
