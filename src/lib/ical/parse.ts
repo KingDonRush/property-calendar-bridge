@@ -5,6 +5,7 @@ export type ParsedIcsEvent = {
   start: Date;
   end: Date;
   summary?: string;
+  description?: string;
   allDay: boolean;
 };
 
@@ -25,10 +26,11 @@ export function parseIcs(ics: string): ParsedIcsEvent[] {
 
     const allDay = (component as any).datetype === "date";
     const summary = typeof (component as any).summary === "string" ? (component as any).summary : undefined;
+    const description =
+      typeof (component as any).description === "string" ? (component as any).description : undefined;
 
-    events.push({ uid, start, end, summary, allDay });
+    events.push({ uid, start, end, summary, description, allDay });
   }
 
   return events;
 }
-
