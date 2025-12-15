@@ -1,6 +1,20 @@
 import ical, { ICalCalendarMethod } from "ical-generator";
 
-import type { Booking, Property } from "../models/types";
+import { BookingStatus, type Booking, type Property } from "../models/types";
+
+function bookingSummary(booking: Booking): string {
+  switch (booking.status) {
+    case BookingStatus.Cancelled:
+      return "Cancelado";
+    case BookingStatus.Blocked:
+      return "Bloqueado";
+    case BookingStatus.Tentative:
+      return "Reservado";
+    case BookingStatus.Confirmed:
+    default:
+      return "Reservado";
+  }
+}
 
 export function generateCalendar(bookings: Booking[], propertyInfo: Property): string {
   const calendar = ical({
@@ -16,7 +30,7 @@ export function generateCalendar(bookings: Booking[], propertyInfo: Property): s
       uid: booking.uid,
       start: new Date(booking.start_date),
       end: new Date(booking.end_date),
-      summary: "Reserved"
+      summary: bookingSummary(booking)
     });
   }
 
