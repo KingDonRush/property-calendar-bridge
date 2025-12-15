@@ -10,7 +10,8 @@ export type ConflictSeverity = (typeof ConflictSeverity)[keyof typeof ConflictSe
 export const ConflictType = {
   Overlap: "overlap",
   Adjacent: "adjacent",
-  Double: "double"
+  Double: "double",
+  BufferViolation: "buffer_violation"
 } as const;
 
 export type ConflictType = (typeof ConflictType)[keyof typeof ConflictType];
@@ -56,16 +57,45 @@ function parseBookingRange(booking: Booking): { start: Date; end: Date } | null 
   return { start, end };
 }
 
-export function detectConflicts(newBooking: Booking, existingBookings: Booking[]): Conflict[] {
+export type DetectConflictsOptions = {
+  bufferHours?: number;
+};
+
+function overlapsWithBuffer(
+  startA: Date,
+  endA: Date,
+  startB: Date,
+  endB: Date,
+  bufferHours: number
+): boolean {
+  const bufferMs = Math.max(0, bufferHours) * 60 * 60 * 1000;
+  const aStart = startA.getTime();
+  const aEnd = endA.getTime() + bufferMs;
+  const bStart = startB.getTime();
+  const bEnd = endB.getTime() + bufferMs;
+  return aStart < bEnd && bStart < aEnd;
+}
+
+export function detectConflicts(
+  newBooking: Booking,
+  existingBookings: Booking[],
+  options: DetectConflictsOptions = {}
+): Conflict[] {
   const newRange = parseBookingRange(newBooking);
   if (!newRange) return [];
 
   const conflicts: Conflict[] = [];
+  const bufferHours = options.bufferHours ?? 0;
   for (const existing of existingBookings) {
     const existingRange = parseBookingRange(existing);
     if (!existingRange) continue;
 
-    if (checkDateOverlap(newRange.start, newRange.end, existingRange.start, existingRange.end)) {
+    const overlaps =
+      bufferHours > 0
+        ? overlapsWithBuffer(newRange.start, newRange.end, existingRange.start, existingRange.end, bufferHours)
+        : checkDateOverlap(newRange.start, newRange.end, existingRange.start, existingRange.end);
+
+    if (overlaps) {
       const isExternal =
         (newBooking as any).source !== undefined &&
         (newBooking as any).source !== "manual" &&
@@ -77,7 +107,7 @@ export function detectConflicts(newBooking: Booking, existingBookings: Booking[]
       const severity = isExternal || existingIsExternal ? ConflictSeverity.Critical : ConflictSeverity.Warning;
 
       conflicts.push({
-        type: ConflictType.Overlap,
+        type: bufferHours > 0 ? ConflictType.BufferViolation : ConflictType.Overlap,
         severity,
         booking: newBooking,
         conflictingBooking: existing

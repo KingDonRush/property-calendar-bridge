@@ -12,6 +12,6 @@ describe("core/conflicts types", () => {
     expect(ConflictType.Overlap).toBe("overlap");
     expect(ConflictType.Adjacent).toBe("adjacent");
     expect(ConflictType.Double).toBe("double");
+    expect(ConflictType.BufferViolation).toBe("buffer_violation");
   });
 });
-
