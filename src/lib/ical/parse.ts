@@ -1,6 +1,7 @@
 import { parseICS } from "node-ical";
 
 import { normalizeDateRange, toUtcISOString } from "../models/time";
+import { BookingStatus, type Booking } from "../models/types";
 
 export type ParsedIcsEvent = {
   uid: string;
@@ -38,6 +39,16 @@ export function normalizeEventDateRange(event: Pick<ParsedIcsEvent, "start" | "e
   }
 
   return { startUtc: toUtcISOString(event.start), endUtc: toUtcISOString(event.end) };
+}
+
+export function eventToBooking(event: Pick<ParsedIcsEvent, "uid" | "start" | "end" | "allDay">): Booking {
+  const { startUtc, endUtc } = normalizeEventDateRange(event);
+  return {
+    uid: event.uid,
+    start_date: startUtc,
+    end_date: endUtc,
+    status: BookingStatus.Confirmed
+  };
 }
 
 export function parseIcs(ics: string): ParsedIcsEvent[] {
