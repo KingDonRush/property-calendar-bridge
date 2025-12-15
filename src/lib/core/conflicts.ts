@@ -66,9 +66,19 @@ export function detectConflicts(newBooking: Booking, existingBookings: Booking[]
     if (!existingRange) continue;
 
     if (checkDateOverlap(newRange.start, newRange.end, existingRange.start, existingRange.end)) {
+      const isExternal =
+        (newBooking as any).source !== undefined &&
+        (newBooking as any).source !== "manual" &&
+        (newBooking as any).source !== "internal";
+      const existingIsExternal =
+        (existing as any).source !== undefined &&
+        (existing as any).source !== "manual" &&
+        (existing as any).source !== "internal";
+      const severity = isExternal || existingIsExternal ? ConflictSeverity.Critical : ConflictSeverity.Warning;
+
       conflicts.push({
         type: ConflictType.Overlap,
-        severity: ConflictSeverity.Warning,
+        severity,
         booking: newBooking,
         conflictingBooking: existing
       });
