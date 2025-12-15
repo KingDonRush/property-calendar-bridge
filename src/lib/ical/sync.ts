@@ -1,4 +1,7 @@
+import { createHash } from "node:crypto";
+
 import { IcsParseError, parseIcs, type ParsedIcsEvent } from "./parse";
+import type { Booking } from "../models/types";
 
 export type FetchAndParseIcsOptions = {
   timeoutMs?: number;
@@ -13,6 +16,11 @@ export class FetchIcsError extends Error {
     this.name = "FetchIcsError";
     this.cause = cause;
   }
+}
+
+export function bookingHash(booking: Pick<Booking, "uid" | "start_date" | "end_date" | "status">): string {
+  const payload = `${booking.uid}|${booking.start_date}|${booking.end_date}|${booking.status}`;
+  return createHash("sha256").update(payload).digest("hex");
 }
 
 function isAbortError(error: unknown): boolean {
@@ -49,4 +57,3 @@ export async function fetchAndParseIcs(url: string, options: FetchAndParseIcsOpt
     clearTimeout(timeoutId);
   }
 }
-
