@@ -1,8 +1,9 @@
 import { createHash } from "node:crypto";
 
-import { IcsParseError, parseIcs, type ParsedIcsEvent } from "./parse";
+import { eventToBooking, IcsParseError, parseIcs, type ParsedIcsEvent } from "./parse";
 import { BookingStatus, type Booking } from "../models/types";
 import { createMapping, upsertBooking } from "../data/repositories";
+import { detectConflicts } from "../core/conflicts";
 
 export type FetchAndParseIcsOptions = {
   timeoutMs?: number;
@@ -139,5 +140,107 @@ export async function fetchAndParseIcs(url: string, options: FetchAndParseIcsOpt
     throw new FetchIcsError("Failed to fetch ICS", error);
   } finally {
     clearTimeout(timeoutId);
+  }
+}
+
+export type SyncSourceOptions = FetchAndParseIcsOptions & {
+  now?: () => Date;
+};
+
+export async function syncSource(
+  sourceId: string,
+  options: SyncSourceOptions = {}
+): Promise<{ run: unknown; imported: number; upserted: number; conflicts: number }> {
+  const now = options.now ?? (() => new Date());
+
+  const repos = await import("../data/repositories");
+  const run = await repos.createSyncRun({
+    channel_source_id: sourceId,
+    started_at: now().toISOString(),
+    status: "running"
+  });
+  const runId = typeof (run as any)?.id === "string" ? (run as any).id : null;
+  if (!runId) {
+    throw new Error("Failed to create SyncRun");
+  }
+
+  let imported = 0;
+  let upserted = 0;
+  let conflicts = 0;
+  const processed: Booking[] = [];
+
+  try {
+    const source = await repos.getSourceById(sourceId);
+    const sourceUrl = typeof (source as any)?.source_url === "string" ? (source as any).source_url : null;
+    if (!sourceUrl) {
+      throw new Error("Channel source URL not found");
+    }
+
+    const events = await fetchAndParseIcs(sourceUrl, options);
+    for (const event of events) {
+      const incoming = eventToBooking(event);
+      const externalUid = event.uid;
+
+      const mapping = await repos.getMappingByExternalId(externalUid);
+      const mappingId = typeof (mapping as any)?.id === "string" ? (mapping as any).id : null;
+      const mappedBookingId =
+        typeof (mapping as any)?.booking_id === "string"
+          ? (mapping as any).booking_id
+          : typeof (mapping as any)?.bookingUid === "string"
+            ? (mapping as any).bookingUid
+            : null;
+      const lastHash =
+        typeof (mapping as any)?.original_data?.hash === "string"
+          ? (mapping as any).original_data.hash
+          : typeof (mapping as any)?.lastHash === "string"
+            ? (mapping as any).lastHash
+            : null;
+
+      const existingBooking = mappedBookingId ? ((await repos.getBookingById(mappedBookingId)) as any) : null;
+      const existingMapping = mappedBookingId ? { bookingUid: mappedBookingId, lastHash } : null;
+
+      const decision = reconcileExternalBooking({
+        incoming,
+        existingBooking,
+        existingMapping
+      });
+
+      if (decision.action === "create") imported += 1;
+      if (decision.action === "update") upserted += 1;
+
+      if (decision.action !== "skip") {
+        await persistDecision(sourceId, decision);
+
+        if (mappingId && decision.action === "update") {
+          const nextHash = bookingHash(incoming);
+          const previousData =
+            (mapping as any)?.original_data && typeof (mapping as any).original_data === "object"
+              ? (mapping as any).original_data
+              : {};
+
+          await repos.updateMapping(mappingId, {
+            original_data: { ...previousData, hash: nextHash }
+          });
+        }
+      }
+
+      conflicts += detectConflicts(incoming, processed).length;
+      processed.push(incoming);
+    }
+
+    await repos.updateSyncRun(runId, {
+      finished_at: now().toISOString(),
+      status: "success",
+      log_summary: { imported, upserted, conflicts }
+    });
+
+    return { run, imported, upserted, conflicts };
+  } catch (error) {
+    await repos.updateSyncRun(runId, {
+      finished_at: now().toISOString(),
+      status: "failed",
+      log_summary: { error: error instanceof Error ? error.message : String(error) }
+    });
+    throw error;
   }
 }
