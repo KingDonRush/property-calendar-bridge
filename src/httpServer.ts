@@ -5,6 +5,7 @@ import { GET as icalGet } from "./app/api/ical/[secret]/master.ics/route";
 import { POST as authLoginPost } from "./app/api/auth/login/route";
 import { POST as authLogoutPost } from "./app/api/auth/logout/route";
 import { GET as adminSourcesGet, POST as adminSourcesPost } from "./app/api/admin/sources/route";
+import { DELETE as adminSourcesIdDelete, PUT as adminSourcesIdPut } from "./app/api/admin/sources/[id]/route";
 import { POST as jobsSyncPost } from "./app/api/jobs/sync/route";
 import { requireAdminSession } from "./lib/ui-auth/guard";
 import { renderLoginPage } from "./ui/pages/login";
@@ -119,6 +120,17 @@ export async function handler(
   }
   if (method === "POST" && url.pathname === "/api/admin/sources") {
     return sendResponse(nodeResponse, await adminSourcesPost(request));
+  }
+
+  const adminSourcesIdMatch = url.pathname.match(/^\/api\/admin\/sources\/([^/]+)$/);
+  if (adminSourcesIdMatch) {
+    const id = adminSourcesIdMatch[1] ?? "";
+    if (method === "PUT") {
+      return sendResponse(nodeResponse, await adminSourcesIdPut(request, { params: { id } }));
+    }
+    if (method === "DELETE") {
+      return sendResponse(nodeResponse, await adminSourcesIdDelete(request, { params: { id } }));
+    }
   }
 
   if (method === "GET" && url.pathname === "/api/health") {
