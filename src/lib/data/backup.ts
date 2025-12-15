@@ -45,3 +45,27 @@ export async function generateBackupJSON(options: {
 
   return JSON.stringify(backup, null, 2);
 }
+
+export function validateBackupFile(jsonContent: string): boolean {
+  try {
+    const parsed = JSON.parse(jsonContent) as Partial<BackupFile> | null;
+    if (!parsed || typeof parsed !== "object") return false;
+
+    const meta: any = (parsed as any).meta;
+    const data: any = (parsed as any).data;
+
+    if (!meta || typeof meta !== "object") return false;
+    if (meta.schemaVersion !== 1) return false;
+    if (typeof meta.appVersion !== "string") return false;
+    if (typeof meta.createdAt !== "string") return false;
+
+    if (!data || typeof data !== "object") return false;
+    if (!Array.isArray(data.bookings)) return false;
+    if (!Array.isArray(data.sources)) return false;
+    if (!Array.isArray(data.mappings)) return false;
+
+    return true;
+  } catch {
+    return false;
+  }
+}
