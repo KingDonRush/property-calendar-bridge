@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
-    "start": "node dist/server.js",
+    "start": "node --experimental-specifier-resolution=node dist/src/server.js",
+    "sync:manual": "npm run build && node --experimental-specifier-resolution=node dist/scripts/manual-sync.js",
     "test": "vitest",
     "test:run": "vitest run",
     "typecheck": "tsc -p tsconfig.json --noEmit"
