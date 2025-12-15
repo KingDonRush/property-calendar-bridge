@@ -40,6 +40,17 @@ export async function getAllSources(): Promise<unknown[]> {
   return data ?? [];
 }
 
+export async function createSource(payload: unknown): Promise<unknown> {
+  const client = getSupabaseClient();
+  const { data, error } = (await client.from("channel_sources").insert(payload as any)) as {
+    data: unknown;
+    error: unknown;
+  };
+  if (error) throw error;
+  if (Array.isArray(data)) return data[0] ?? null;
+  return data ?? null;
+}
+
 export async function updateSourceStatus(
   id: string,
   patch: Record<string, unknown>
