@@ -102,7 +102,7 @@ export async function handler(
 
     let title = "Dashboard";
     let activePath = "/admin";
-    let content = renderDashboardPage();
+    let content = await renderDashboardPage();
 
     if (url.pathname === "/admin/sources") {
       title = "Fontes";
