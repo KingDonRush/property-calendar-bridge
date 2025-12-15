@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.87.1",
+    "ical-generator": "^10.0.0",
     "node-ical": "^0.22.1"
   }
 }
