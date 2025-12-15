@@ -100,17 +100,27 @@ export async function handler(
     const authResponse = requireAdminSession(request);
     if (authResponse) return sendResponse(nodeResponse, authResponse);
 
-    let title = "Dashboard";
-    let activePath = "/admin";
-    let content = await renderDashboardPage();
-
     if (url.pathname === "/admin/sources") {
-      title = "Fontes";
-      activePath = "/admin/sources";
-      content = await renderSourcesPage();
+      const html = renderLayout({
+        title: "Fontes",
+        activePath: "/admin/sources",
+        content: await renderSourcesPage()
+      });
+
+      return sendResponse(
+        nodeResponse,
+        new Response(html, {
+          status: 200,
+          headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" }
+        })
+      );
     }
 
-    const html = renderLayout({ title, activePath, content });
+    const html = renderLayout({
+      title: "Dashboard",
+      activePath: "/admin",
+      content: await renderDashboardPage()
+    });
 
     return sendResponse(
       nodeResponse,
