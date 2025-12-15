@@ -20,6 +20,8 @@ import { MAIN_CSS } from "./ui/styles/mainCss";
 import { renderLayout } from "./ui/components/Layout";
 import { renderDashboardPage } from "./ui/pages/Dashboard";
 import { renderSourcesPage } from "./ui/pages/sources";
+import { renderSyncRunsPage } from "./ui/pages/sync-runs";
+import { renderBookingsPage } from "./ui/pages/bookings";
 
 function normalizeHeaders(headers: http.IncomingHttpHeaders): Record<string, string> {
   const normalized: Record<string, string> = {};
@@ -105,6 +107,38 @@ export async function handler(
         title: "Fontes",
         activePath: "/admin/sources",
         content: await renderSourcesPage()
+      });
+
+      return sendResponse(
+        nodeResponse,
+        new Response(html, {
+          status: 200,
+          headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" }
+        })
+      );
+    }
+
+    if (url.pathname === "/admin/sync-runs") {
+      const html = renderLayout({
+        title: "Histórico de Sincronização",
+        activePath: "/admin/sync-runs",
+        content: await renderSyncRunsPage()
+      });
+
+      return sendResponse(
+        nodeResponse,
+        new Response(html, {
+          status: 200,
+          headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" }
+        })
+      );
+    }
+
+    if (url.pathname === "/admin/bookings") {
+      const html = renderLayout({
+        title: "Reservas",
+        activePath: "/admin/bookings",
+        content: await renderBookingsPage(url.searchParams)
       });
 
       return sendResponse(
