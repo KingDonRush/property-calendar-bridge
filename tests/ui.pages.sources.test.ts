@@ -53,4 +53,13 @@ describe("ui/pages/sources", () => {
     expect(html).toContain('type="url"');
     expect(html).toContain('name="refresh_rate"');
   });
+
+  it("includes a client-side script for save/test flows", async () => {
+    const { renderSourcesPage } = await import("../src/ui/pages/sources");
+    const html = await renderSourcesPage();
+    expect(html).toContain("<script");
+    expect(html).toContain("/api/admin/sources/test");
+    expect(html).toContain("/api/admin/sources");
+    expect(html).toContain("window.location.reload");
+  });
 });
