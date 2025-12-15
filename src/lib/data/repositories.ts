@@ -40,6 +40,16 @@ export async function getAllSources(): Promise<unknown[]> {
   return data ?? [];
 }
 
+export async function getAllBookings(): Promise<unknown[]> {
+  const client = getSupabaseClient();
+  const { data, error } = (await client.from("bookings").select("*")) as {
+    data: unknown[] | null;
+    error: unknown;
+  };
+  if (error) throw error;
+  return data ?? [];
+}
+
 export async function createSource(payload: unknown): Promise<unknown> {
   const client = getSupabaseClient();
   const { data, error } = (await client.from("channel_sources").insert(payload as any)) as {
@@ -84,6 +94,16 @@ export async function createMapping(payload: unknown): Promise<unknown> {
   if (error) throw error;
   if (Array.isArray(data)) return data[0] ?? null;
   return data ?? null;
+}
+
+export async function getAllMappings(): Promise<unknown[]> {
+  const client = getSupabaseClient();
+  const { data, error } = (await client.from("booking_mappings").select("*")) as {
+    data: unknown[] | null;
+    error: unknown;
+  };
+  if (error) throw error;
+  return data ?? [];
 }
 
 export async function updateMapping(id: string, patch: Record<string, unknown>): Promise<unknown> {
