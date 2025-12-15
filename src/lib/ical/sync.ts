@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 
 import { IcsParseError, parseIcs, type ParsedIcsEvent } from "./parse";
 import { BookingStatus, type Booking } from "../models/types";
+import { createMapping, upsertBooking } from "../data/repositories";
 
 export type FetchAndParseIcsOptions = {
   timeoutMs?: number;
@@ -71,6 +72,39 @@ export function reconcileExternalBooking(args: {
     booking: args.incoming,
     mapping: { externalUid: args.incoming.uid, bookingUid: args.incoming.uid, hash: incomingHash }
   };
+}
+
+function extractId(value: unknown): string | null {
+  if (!value) return null;
+
+  if (Array.isArray(value)) {
+    const first = value[0] as any;
+    return typeof first?.id === "string" ? first.id : null;
+  }
+
+  if (typeof value === "object") {
+    const maybeId = (value as any).id;
+    return typeof maybeId === "string" ? maybeId : null;
+  }
+
+  return null;
+}
+
+export async function persistDecision(sourceId: string, decision: ReconcileDecision): Promise<void> {
+  if (decision.action === "skip") return;
+
+  const upsertPayload = { id: decision.bookingUid, ...decision.booking } as any;
+  const upsertResult = await upsertBooking(upsertPayload);
+
+  if (decision.action !== "create") return;
+
+  const bookingId = extractId(upsertResult) ?? decision.bookingUid;
+  await createMapping({
+    booking_id: bookingId,
+    channel_source_id: sourceId,
+    external_uid: decision.mapping.externalUid,
+    original_data: { hash: decision.mapping.hash }
+  } as any);
 }
 
 function isAbortError(error: unknown): boolean {
