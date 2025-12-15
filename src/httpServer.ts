@@ -4,6 +4,7 @@ import { GET as healthGet } from "./app/api/health/route";
 import { GET as icalGet } from "./app/api/ical/[secret]/master.ics/route";
 import { POST as authLoginPost } from "./app/api/auth/login/route";
 import { POST as authLogoutPost } from "./app/api/auth/logout/route";
+import { GET as adminSourcesGet } from "./app/api/admin/sources/route";
 import { POST as jobsSyncPost } from "./app/api/jobs/sync/route";
 import { requireAdminSession } from "./lib/ui-auth/guard";
 import { renderLoginPage } from "./ui/pages/login";
@@ -111,6 +112,10 @@ export async function handler(
 
   if (method === "POST" && url.pathname === "/api/auth/logout") {
     return sendResponse(nodeResponse, await authLogoutPost(request));
+  }
+
+  if (method === "GET" && url.pathname === "/api/admin/sources") {
+    return sendResponse(nodeResponse, await adminSourcesGet(request));
   }
 
   if (method === "GET" && url.pathname === "/api/health") {
