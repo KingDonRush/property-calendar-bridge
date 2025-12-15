@@ -3,6 +3,10 @@ declare module "node-ical" {
     type?: string;
   };
 
-  export function parseICS(data: string): Record<string, ParsedIcsComponent>;
-}
+  export type NodeIcal = {
+    parseICS(data: string): Record<string, ParsedIcsComponent>;
+  };
 
+  const nodeIcal: NodeIcal;
+  export default nodeIcal;
+}

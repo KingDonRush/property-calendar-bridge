@@ -1,4 +1,4 @@
-import { parseICS } from "node-ical";
+import nodeIcal, { type ParsedIcsComponent } from "node-ical";
 
 import { normalizeDateRange, toUtcISOString } from "../models/time";
 import { BookingStatus, type Booking } from "../models/types";
@@ -17,14 +17,40 @@ export type NormalizedEventDateRange = {
   endUtc: string;
 };
 
+export class IcsParseError extends Error {
+  cause?: unknown;
+
+  constructor(message: string, cause?: unknown) {
+    super(message);
+    this.name = "IcsParseError";
+    this.cause = cause;
+  }
+}
+
 function assertValidDate(date: Date): void {
   if (Number.isNaN(date.getTime())) {
     throw new Error("Invalid event date");
   }
 }
 
-function toUtcDateOnlyString(date: Date): string {
-  return toUtcISOString(date).slice(0, 10);
+function pad2(value: number): string {
+  return String(value).padStart(2, "0");
+}
+
+function isMidnight(hours: number, minutes: number, seconds: number, milliseconds: number): boolean {
+  return hours === 0 && minutes === 0 && seconds === 0 && milliseconds === 0;
+}
+
+function toInferredDateOnlyString(date: Date): string {
+  const localMidnight = isMidnight(date.getHours(), date.getMinutes(), date.getSeconds(), date.getMilliseconds());
+  const utcMidnight = isMidnight(date.getUTCHours(), date.getUTCMinutes(), date.getUTCSeconds(), date.getUTCMilliseconds());
+
+  const useLocal = localMidnight && !utcMidnight;
+  const year = useLocal ? date.getFullYear() : date.getUTCFullYear();
+  const month = useLocal ? date.getMonth() + 1 : date.getUTCMonth() + 1;
+  const day = useLocal ? date.getDate() : date.getUTCDate();
+
+  return `${year}-${pad2(month)}-${pad2(day)}`;
 }
 
 export function normalizeEventDateRange(event: Pick<ParsedIcsEvent, "start" | "end" | "allDay">): NormalizedEventDateRange {
@@ -32,8 +58,8 @@ export function normalizeEventDateRange(event: Pick<ParsedIcsEvent, "start" | "e
   assertValidDate(event.end);
 
   if (event.allDay) {
-    const startDateOnly = toUtcDateOnlyString(event.start);
-    const endDateOnly = toUtcDateOnlyString(event.end);
+    const startDateOnly = toInferredDateOnlyString(event.start);
+    const endDateOnly = toInferredDateOnlyString(event.end);
     const { start, end } = normalizeDateRange(startDateOnly, endDateOnly, true);
     return { startUtc: start, endUtc: end };
   }
@@ -55,7 +81,16 @@ export function parseIcs(ics: string): ParsedIcsEvent[] {
   const trimmed = ics.trim();
   if (!trimmed) return [];
 
-  const parsed = parseICS(trimmed);
+  if (!trimmed.includes("BEGIN:VCALENDAR")) {
+    throw new IcsParseError("Invalid ICS content");
+  }
+
+  let parsed: Record<string, ParsedIcsComponent>;
+  try {
+    parsed = nodeIcal.parseICS(trimmed);
+  } catch (error) {
+    throw new IcsParseError("Invalid ICS content", error);
+  }
   const events: ParsedIcsEvent[] = [];
 
   for (const component of Object.values(parsed)) {
