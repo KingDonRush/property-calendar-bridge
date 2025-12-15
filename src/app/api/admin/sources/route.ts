@@ -16,6 +16,10 @@ function isValidHttpUrl(value: string): boolean {
   }
 }
 
+function isNonNegativeInteger(value: unknown): value is number {
+  return typeof value === "number" && Number.isInteger(value) && value >= 0;
+}
+
 async function unsafeGET(request: Request): Promise<Response> {
   const authResponse = requireAdminSession(request);
   if (authResponse) return authResponse;
@@ -39,6 +43,7 @@ async function unsafePOST(request: Request): Promise<Response> {
   const property_id = body.property_id;
   const source_url = body.source_url;
   const source_name = body.source_name;
+  const refresh_rate = body.refresh_rate;
 
   if (!isNonEmptyString(property_id)) {
     return errorResponse(400, "property_id is required", "BAD_REQUEST");
@@ -52,10 +57,15 @@ async function unsafePOST(request: Request): Promise<Response> {
     return errorResponse(400, "source_name must be a non-empty string", "BAD_REQUEST");
   }
 
+  if (refresh_rate !== undefined && refresh_rate !== null && !isNonNegativeInteger(refresh_rate)) {
+    return errorResponse(400, "refresh_rate must be a non-negative integer", "BAD_REQUEST");
+  }
+
   const created = await createSource({
     property_id,
     source_url,
     ...(isNonEmptyString(source_name) ? { source_name } : {}),
+    ...(isNonNegativeInteger(refresh_rate) ? { refresh_rate } : {}),
   });
 
   return jsonResponse({ source: created }, { status: 201 });
