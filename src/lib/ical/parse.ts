@@ -1,5 +1,7 @@
 import { parseICS } from "node-ical";
 
+import { normalizeDateRange, toUtcISOString } from "../models/time";
+
 export type ParsedIcsEvent = {
   uid: string;
   start: Date;
@@ -8,6 +10,35 @@ export type ParsedIcsEvent = {
   description?: string;
   allDay: boolean;
 };
+
+export type NormalizedEventDateRange = {
+  startUtc: string;
+  endUtc: string;
+};
+
+function assertValidDate(date: Date): void {
+  if (Number.isNaN(date.getTime())) {
+    throw new Error("Invalid event date");
+  }
+}
+
+function toUtcDateOnlyString(date: Date): string {
+  return toUtcISOString(date).slice(0, 10);
+}
+
+export function normalizeEventDateRange(event: Pick<ParsedIcsEvent, "start" | "end" | "allDay">): NormalizedEventDateRange {
+  assertValidDate(event.start);
+  assertValidDate(event.end);
+
+  if (event.allDay) {
+    const startDateOnly = toUtcDateOnlyString(event.start);
+    const endDateOnly = toUtcDateOnlyString(event.end);
+    const { start, end } = normalizeDateRange(startDateOnly, endDateOnly, true);
+    return { startUtc: start, endUtc: end };
+  }
+
+  return { startUtc: toUtcISOString(event.start), endUtc: toUtcISOString(event.end) };
+}
 
 export function parseIcs(ics: string): ParsedIcsEvent[] {
   const trimmed = ics.trim();
