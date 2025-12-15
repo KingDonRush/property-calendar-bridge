@@ -42,4 +42,12 @@ describe("ui/pages/Dashboard", () => {
     expect(html).toContain("Ultima sincronizacao");
     expect(html).toContain("success");
   });
+
+  it("includes a Sync Now button and client-side script", async () => {
+    const { renderDashboardPage } = await import("../src/ui/pages/Dashboard");
+    const html = await renderDashboardPage();
+    expect(html).toContain('id="btn-sync-now"');
+    expect(html).toContain("/api/admin/sync");
+    expect(html).toContain("window.location.reload");
+  });
 });

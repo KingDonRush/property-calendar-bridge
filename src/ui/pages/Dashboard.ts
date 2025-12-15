@@ -31,5 +31,51 @@ export async function renderDashboardPage(): Promise<string> {
     <div class="muted" style="margin: 0 0 6px;">Ultima sincronizacao</div>
     <div style="font-size: 14px; font-weight: 600;">${escapeHtml(lastSync)}</div>
   </div>
-</div>`;
+</div>
+<div style="margin-top: 12px; display: flex; gap: 8px; align-items: center;">
+  <button class="btn" type="button" id="btn-sync-now">Sync Now</button>
+  <div id="syncNowMsg" class="muted"></div>
+</div>
+<script>
+(() => {
+  const btn = document.getElementById("btn-sync-now");
+  const msg = document.getElementById("syncNowMsg");
+
+  function setMsg(text) {
+    if (!msg) return;
+    msg.textContent = text;
+  }
+
+  async function parseJsonSafe(response) {
+    try {
+      return await response.json();
+    } catch {
+      return null;
+    }
+  }
+
+  if (!btn) return;
+
+  btn.addEventListener("click", async () => {
+    setMsg("Sincronizando...");
+    btn.disabled = true;
+
+    const response = await fetch("/api/admin/sync", { method: "POST" });
+    if (response.status === 401) {
+      window.location.href = "/login";
+      return;
+    }
+
+    const body = await parseJsonSafe(response);
+    if (!response.ok) {
+      setMsg(body && body.message ? body.message : "Falha ao sincronizar");
+      btn.disabled = false;
+      return;
+    }
+
+    setMsg("OK. Recarregando...");
+    window.location.reload();
+  });
+})();
+</script>`;
 }
