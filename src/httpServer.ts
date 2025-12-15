@@ -7,6 +7,7 @@ import { POST as authLogoutPost } from "./app/api/auth/logout/route";
 import { POST as jobsSyncPost } from "./app/api/jobs/sync/route";
 import { requireAdminSession } from "./lib/ui-auth/guard";
 import { renderLoginPage } from "./ui/pages/login";
+import { MAIN_CSS } from "./ui/styles/mainCss";
 
 function normalizeHeaders(headers: http.IncomingHttpHeaders): Record<string, string> {
   const normalized: Record<string, string> = {};
@@ -80,6 +81,16 @@ export async function handler(
     );
   }
 
+  if (method === "GET" && url.pathname === "/assets/main.css") {
+    return sendResponse(
+      nodeResponse,
+      new Response(MAIN_CSS, {
+        status: 200,
+        headers: { "content-type": "text/css; charset=utf-8", "cache-control": "no-store" },
+      })
+    );
+  }
+
   if (url.pathname === "/admin" || url.pathname.startsWith("/admin/")) {
     const authResponse = requireAdminSession(request);
     if (authResponse) return sendResponse(nodeResponse, authResponse);
@@ -118,4 +129,3 @@ export function createHttpServer(): http.Server {
     void handler(req, res);
   });
 }
-

@@ -1,0 +1,130 @@
+export const MAIN_CSS = `:root {
+  color-scheme: light;
+  --bg-0: #0b1020;
+  --bg-1: #121a33;
+  --bg-2: #0d1530;
+  --border-0: #26315a;
+  --border-1: #2a3766;
+  --text-0: #f2f5ff;
+  --text-1: rgba(242, 245, 255, 0.85);
+  --accent-0: #4f7cff;
+  --danger-0: #7a2b3a;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --radius-2: 10px;
+  --radius-3: 12px;
+  --font-sans: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  background: var(--bg-0);
+  color: var(--text-0);
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th,
+td {
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 1px solid var(--border-0);
+  text-align: left;
+  font-size: 14px;
+}
+
+th {
+  color: var(--text-1);
+  font-weight: 600;
+}
+
+.container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: var(--space-5);
+}
+
+.card {
+  background: var(--bg-1);
+  border: 1px solid var(--border-0);
+  border-radius: var(--radius-3);
+  padding: var(--space-4);
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 10px 12px;
+  border-radius: var(--radius-2);
+  border: 0;
+  background: var(--accent-0);
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn.secondary {
+  background: transparent;
+  border: 1px solid var(--border-1);
+  color: var(--text-0);
+}
+
+.nav {
+  display: flex;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.nav a {
+  padding: 8px 10px;
+  border-radius: var(--radius-2);
+  border: 1px solid transparent;
+  color: var(--text-1);
+}
+
+.nav a.active {
+  border-color: var(--border-1);
+  color: var(--text-0);
+  background: var(--bg-2);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.muted {
+  color: var(--text-1);
+}
+`;
+
