@@ -158,3 +158,14 @@ export async function updateSyncRun(id: string, patch: Record<string, unknown>):
   if (error) throw error;
   return data;
 }
+
+export async function listSyncRuns(): Promise<unknown[]> {
+  const client = getSupabaseClient();
+  const { data, error } = (await client
+    .from("sync_runs")
+    .select("*")
+    .order("started_at", { ascending: false })
+    .limit(50)) as { data: unknown[] | null; error: unknown };
+  if (error) throw error;
+  return data ?? [];
+}

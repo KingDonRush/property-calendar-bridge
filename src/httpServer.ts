@@ -7,6 +7,7 @@ import { POST as authLogoutPost } from "./app/api/auth/logout/route";
 import { GET as adminSourcesGet, POST as adminSourcesPost } from "./app/api/admin/sources/route";
 import { DELETE as adminSourcesIdDelete, PUT as adminSourcesIdPut } from "./app/api/admin/sources/[id]/route";
 import { POST as adminSourcesTestPost } from "./app/api/admin/sources/test/route";
+import { GET as adminSyncRunsGet } from "./app/api/admin/sync-runs/route";
 import { POST as jobsSyncPost } from "./app/api/jobs/sync/route";
 import { requireAdminSession } from "./lib/ui-auth/guard";
 import { renderLoginPage } from "./ui/pages/login";
@@ -132,6 +133,10 @@ export async function handler(
 
   if (method === "POST" && url.pathname === "/api/admin/sources/test") {
     return sendResponse(nodeResponse, await adminSourcesTestPost(request));
+  }
+
+  if (method === "GET" && url.pathname === "/api/admin/sync-runs") {
+    return sendResponse(nodeResponse, await adminSyncRunsGet(request));
   }
 
   const adminSourcesIdMatch = url.pathname.match(/^\/api\/admin\/sources\/([^/]+)$/);
