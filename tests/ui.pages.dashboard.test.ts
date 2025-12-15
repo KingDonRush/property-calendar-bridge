@@ -24,5 +24,22 @@ describe("ui/pages/Dashboard", () => {
     expect(html).toContain("Dashboard");
     expect(getDashboardStatsMock).toHaveBeenCalledTimes(1);
   });
-});
 
+  it("renders summary cards with health, sources and last sync", async () => {
+    getDashboardStatsMock.mockResolvedValueOnce({
+      health: { status: "ok", timestamp: "2025-01-01T00:00:00.000Z" },
+      sourcesCount: 2,
+      lastSyncRun: { startedAt: "2025-01-01T00:00:00.000Z", status: "success" },
+    });
+
+    const { renderDashboardPage } = await import("../src/ui/pages/Dashboard");
+    const html = await renderDashboardPage();
+
+    expect(html).toContain("Status do sistema");
+    expect(html).toContain("ok");
+    expect(html).toContain("Total de fontes");
+    expect(html).toContain("2");
+    expect(html).toContain("Ultima sincronizacao");
+    expect(html).toContain("success");
+  });
+});
