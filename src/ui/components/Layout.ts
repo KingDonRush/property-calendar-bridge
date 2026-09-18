@@ -20,7 +20,7 @@ export function renderLayout(options: LayoutOptions): string {
         </svg>
       </button>
       <div>
-        <div><strong>simplePropertyManager</strong></div>
+        <div><strong>Property Calendar Bridge</strong></div>
         <div class="muted">Admin</div>
       </div>
     </div>

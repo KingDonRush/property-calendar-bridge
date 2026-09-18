@@ -5,8 +5,8 @@ import './globals.css'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-    title: 'Simple Property Manager',
-    description: 'Sistema de gerenciamento de propriedades',
+    title: 'Property Calendar Bridge',
+    description: 'Sincronização e consolidação de calendários de reservas',
 }
 
 export default function RootLayout({

@@ -31,7 +31,7 @@ export function renderLoginPage(error?: string): string {
   </head>
   <body>
     <main class="card">
-      <h1>simplePropertyManager — Admin</h1>
+      <h1>Property Calendar Bridge — Admin</h1>
       ${errorBlock}
       <form method="POST" action="/api/auth/login">
         <label for="token">Token</label>

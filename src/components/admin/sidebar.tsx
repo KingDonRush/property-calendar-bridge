@@ -82,7 +82,7 @@ export function Sidebar() {
                 <div className="flex h-16 items-center justify-between border-b border-slate-700 px-6">
                     <Link href="/admin" className="flex items-center gap-2" data-ui="sidebar-logo">
                         <span className="text-lg font-semibold text-slate-50">
-                            SPM
+                            Calendar Bridge
                         </span>
                     </Link>
                     {/* Botão Fechar - Mobile Only */}

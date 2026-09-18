@@ -1,26 +1,52 @@
-# simplePropertyManager
+# Property Calendar Bridge
 
-A single-administrator property calendar application with a Next.js interface,
-a shared Node API and a Supabase/Postgres data layer. It imports iCalendar feeds
-into property-scoped bookings, records synchronization outcomes and exports a
-combined occupancy calendar.
+A booking-calendar synchronization service that brings external iCalendar feeds
+into canonical property bookings and publishes a consolidated occupancy calendar.
+It gives an operator a traceable import history: which source supplied an event,
+which booking it maps to, what changed and whether synchronization succeeded.
 
-## Data flow
+## From source calendars to occupancy
 
-A property owns channel sources. Synchronization fetches a source, parses its
-events and reconciles each external UID against that source's mapping. Imported
-bookings receive stable source-scoped UUIDs; repeated imports converge and changes
-update the mapped booking. Sync runs record success or failure and completed counts.
-Sources with `refresh_rate = 0` are excluded from the scheduled job.
+**Property → iCalendar sources → fetch / parse → source-scoped reconciliation →
+booking mappings → sync runs → consolidated calendar**
 
-The schema stores occupancy dates, so timed iCalendar events are reduced to their
-normalized UTC dates. Conflict counts currently compare events within the fetched
-batch; they are not a property-wide availability engine. Recurrence expansion,
-remote deletion reconciliation and automatic interval scheduling are not implemented.
-`refresh_rate` is source metadata plus an enabled/disabled flag; an external cron
-invokes the sync endpoint.
+Each property owns channel sources. Synchronization reconciles an external UID
+against the mapping for that source, creating, updating or skipping the booking.
+Deterministic source-scoped IDs allow repeated imports to converge and interrupted
+mapping writes to be repaired on retry. Sync runs preserve outcomes and completed
+counts; the master export is generated from persisted bookings.
 
-## Run
+This is calendar integration infrastructure, rather than a complete property
+management suite or a channel manager with pricing/distribution APIs. The separate
+[Rental Booking Dashboard](https://github.com/KingDonRush/rental-booking-dashboard)
+focuses on apartments, rooms, occupancy and payment operations.
+
+## Operator interface
+
+| Area | Current workflow |
+| --- | --- |
+| Dashboard | Inspect counts and recent sync activity; trigger synchronization |
+| Sources | Add/edit channel URLs, associate a property, test a feed and manage refresh metadata |
+| Reservations | Inspect and filter consolidated booking records |
+| Sync Runs | Review synchronization status/history and run the shared import job |
+| Audit | Inspect recorded administrative events |
+| Settings | Access backup operations and configuration information |
+
+The Next.js admin and legacy Node HTTP interface share domain and persistence
+services. Manual UI/CLI triggers and the protected job endpoint invoke the same
+sync job. Scheduling is provided by an external cron, not an in-process scheduler.
+
+## Architecture
+
+| Component | Responsibility |
+| --- | --- |
+| [Calendar services](src/lib/ical) | Parse feeds, reconcile source events and export iCalendar |
+| [Sync job](src/lib/jobs/sync.ts) | Iterate enabled sources and retain per-source results |
+| [Repositories](src/lib/data/repositories.ts) | Supabase/Postgres bookings, mappings, sync runs and audit persistence |
+| [SQL migrations](supabase/migrations) | Properties, channel sources, bookings, mappings, conflicts, history and RLS |
+| [Next routes](src/app) / [legacy HTTP server](src/httpServer.ts) | Admin operations and authenticated APIs |
+
+## Run locally
 
 Use Node 22.12+ and npm. Copy `.env.example` to `.env` and supply a development
 Supabase project. Apply `supabase/migrations` in filename order. The server database
@@ -29,6 +55,8 @@ in a browser-public environment variable. Historical `NEXT_PUBLIC_*` fallbacks
 remain for compatibility but do not provide the required service-role permissions.
 
 ```bash
+git clone https://github.com/KingDonRush/property-calendar-bridge.git
+cd property-calendar-bridge
 npm ci
 npm run dev
 ```
@@ -86,3 +114,16 @@ best-effort and is not a tamper-proof event ledger.
 The Next.js interface and legacy HTTP renderer coexist during migration; see
 [frontend migration notes](docs/frontend-migration-prd.txt) for historical context.
 The implementation and verification commands above describe the current state.
+
+## Calendar semantics and compatibility
+
+The schema stores occupancy dates, so timed events are reduced to normalized UTC
+dates. Conflict counts compare events within the fetched batch, not all existing
+property bookings. Recurrence expansion and remote deletion reconciliation are
+not implemented. `refresh_rate` is source metadata plus an enabled/disabled flag;
+zero excludes a source from the job, but nonzero values do not schedule intervals.
+
+The internal `simplePropertyManager` seed used for deterministic imported IDs and
+the iCalendar `PRODID` are preserved. Existing booking IDs, exported identity,
+package name, environment variables and database names do not change with the
+repository/product rename.

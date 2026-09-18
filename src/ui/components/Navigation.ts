@@ -37,7 +37,7 @@ export function renderNavigation(activePath: string): string {
 export function renderHeader(): string {
   return `<div class="header">
   <div>
-    <div><strong>simplePropertyManager</strong></div>
+    <div><strong>Property Calendar Bridge</strong></div>
     <div class="muted">Admin</div>
   </div>
   <form method="POST" action="/api/auth/logout">

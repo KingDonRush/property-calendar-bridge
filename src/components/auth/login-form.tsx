@@ -38,7 +38,7 @@ export function LoginForm() {
     return (
         <Card className="w-full max-w-md" data-ui="login-card">
             <CardHeader className="text-center">
-                <CardTitle className="text-2xl">Simple Property Manager</CardTitle>
+                <CardTitle className="text-2xl">Property Calendar Bridge</CardTitle>
                 <CardDescription>Entre com seu token de administrador</CardDescription>
             </CardHeader>
             <form action={handleSubmit}>
