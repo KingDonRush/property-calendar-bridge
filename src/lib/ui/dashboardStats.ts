@@ -1,7 +1,7 @@
-import { getAllSources, listSyncRuns } from "../data/repositories";
+import { getAllSources, listSyncRuns } from "../data/repositories.js";
 
 export type DashboardHealth = {
-  status: "ok";
+  status: "ok" | "error";
   timestamp: string;
 };
 
@@ -27,7 +27,7 @@ export async function getDashboardStats(): Promise<DashboardStats> {
     syncRuns = Array.isArray(result[1]) ? result[1] : [];
   } catch {
     return {
-      health: { status: "ok", timestamp: now },
+      health: { status: "error", timestamp: now },
       sourcesCount: 0,
       lastSyncRun: null
     };

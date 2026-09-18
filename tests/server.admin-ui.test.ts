@@ -1,4 +1,7 @@
-import { afterEach, describe, expect, it } from "vitest";
+vi.mock("../src/lib/data/repositories", () => ({
+  getAllSources: async () => [], listSyncRuns: async () => []
+}));
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { createHttpServer } from "../src/httpServer";
 
@@ -66,7 +69,7 @@ describe("server admin UI routing", () => {
 
       expect(adminResponse.status).toBe(200);
       const html = await adminResponse.text();
-      expect(html).toContain('href="/assets/main.css"');
+      expect(html).toContain('href="/assets/main.css?v=2"');
       expect(html).toContain("Dashboard");
     } finally {
       await new Promise<void>((resolve) => server.close(() => resolve()));

@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("../src/lib/jobs/sync", () => ({
-  runSyncJob: vi.fn(async () => ({ ok: true, runId: "run_1" })),
+  runSyncJob: vi.fn(async (..._args: unknown[]) => ({ ok: true, runId: "run_1" })),
 }));
 
 import { runSyncJob } from "../src/lib/jobs/sync";

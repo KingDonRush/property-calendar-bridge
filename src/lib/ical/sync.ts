@@ -1,9 +1,9 @@
 import { createHash } from "node:crypto";
 
-import { eventToBooking, IcsParseError, parseIcs, type ParsedIcsEvent } from "./parse";
-import { BookingStatus, type Booking } from "../models/types";
-import { createMapping, upsertBooking } from "../data/repositories";
-import { detectConflicts } from "../core/conflicts";
+import { eventToBooking, IcsParseError, parseIcs, type ParsedIcsEvent } from "./parse.js";
+import { BookingStatus, type Booking } from "../models/types.js";
+import { createMapping, upsertBooking } from "../data/repositories.js";
+import { detectConflicts } from "../core/conflicts.js";
 
 export type FetchAndParseIcsOptions = {
   timeoutMs?: number;
@@ -34,11 +34,11 @@ export type ReconcileDecision =
   | { action: "skip"; reason: "no_change" | "protected_local" }
   | { action: "update"; bookingUid: string; booking: Pick<Booking, "uid" | "start_date" | "end_date" | "status"> }
   | {
-      action: "create";
-      bookingUid: string;
-      booking: Pick<Booking, "uid" | "start_date" | "end_date" | "status">;
-      mapping: { externalUid: string; bookingUid: string; hash: string };
-    };
+    action: "create";
+    bookingUid: string;
+    booking: Pick<Booking, "uid" | "start_date" | "end_date" | "status">;
+    mapping: { externalUid: string; bookingUid: string; hash: string };
+  };
 
 export function reconcileExternalBooking(args: {
   incoming: Pick<Booking, "uid" | "start_date" | "end_date" | "status">;
@@ -91,21 +91,35 @@ function extractId(value: unknown): string | null {
   return null;
 }
 
-export async function persistDecision(sourceId: string, decision: ReconcileDecision): Promise<void> {
+/** Stable, source-scoped UUIDv8 makes a retried import converge even if mapping persistence failed. */
+export function importedBookingId(sourceId: string, externalUid: string): string {
+  const bytes = createHash("sha256").update(JSON.stringify(["simplePropertyManager", sourceId, externalUid])).digest().subarray(0, 16);
+  bytes[6] = (bytes[6]! & 0x0f) | 0x80;
+  bytes[8] = (bytes[8]! & 0x3f) | 0x80;
+  const h = bytes.toString("hex");
+  return `${h.slice(0,8)}-${h.slice(8,12)}-${h.slice(12,16)}-${h.slice(16,20)}-${h.slice(20)}`;
+}
+
+export async function persistDecision(sourceId: string, decision: ReconcileDecision, propertyId: string): Promise<void> {
   if (decision.action === "skip") return;
-
-  const upsertPayload = { id: decision.bookingUid, ...decision.booking } as any;
-  const upsertResult = await upsertBooking(upsertPayload);
-
+  if (!propertyId) throw new Error("Channel source property not found");
+  const bookingId = decision.action === "create"
+    ? importedBookingId(sourceId, decision.mapping.externalUid) : decision.bookingUid;
+  // The DB stores occupancy dates; the external UID belongs to the mapping, not the UUID primary key.
+  await upsertBooking({
+    id: bookingId,
+    property_id: propertyId,
+    start_date: decision.booking.start_date.slice(0, 10),
+    end_date: decision.booking.end_date.slice(0, 10),
+    status: decision.booking.status,
+  });
   if (decision.action !== "create") return;
-
-  const bookingId = extractId(upsertResult) ?? decision.bookingUid;
   await createMapping({
     booking_id: bookingId,
     channel_source_id: sourceId,
     external_uid: decision.mapping.externalUid,
     original_data: { hash: decision.mapping.hash }
-  } as any);
+  });
 }
 
 function isAbortError(error: unknown): boolean {
@@ -153,7 +167,7 @@ export async function syncSource(
 ): Promise<{ run: unknown; imported: number; upserted: number; conflicts: number }> {
   const now = options.now ?? (() => new Date());
 
-  const repos = await import("../data/repositories");
+  const repos = await import("../data/repositories.js");
   const run = await repos.createSyncRun({
     channel_source_id: sourceId,
     started_at: now().toISOString(),
@@ -181,7 +195,7 @@ export async function syncSource(
       const incoming = eventToBooking(event);
       const externalUid = event.uid;
 
-      const mapping = await repos.getMappingByExternalId(externalUid);
+      const mapping = await repos.getMappingByExternalId(externalUid, sourceId);
       const mappingId = typeof (mapping as any)?.id === "string" ? (mapping as any).id : null;
       const mappedBookingId =
         typeof (mapping as any)?.booking_id === "string"
@@ -205,11 +219,8 @@ export async function syncSource(
         existingMapping
       });
 
-      if (decision.action === "create") imported += 1;
-      if (decision.action === "update") upserted += 1;
-
       if (decision.action !== "skip") {
-        await persistDecision(sourceId, decision);
+        await persistDecision(sourceId, decision, (source as any)?.property_id);
 
         if (mappingId && decision.action === "update") {
           const nextHash = bookingHash(incoming);
@@ -223,6 +234,9 @@ export async function syncSource(
           });
         }
       }
+
+      if (decision.action === "create") imported += 1;
+      if (decision.action === "update") upserted += 1;
 
       conflicts += detectConflicts(incoming, processed).length;
       processed.push(incoming);

@@ -1,4 +1,4 @@
-import { getDashboardStats } from "../../lib/ui/dashboardStats";
+import { getDashboardStats } from "../../lib/ui/dashboardStats.js";
 
 function escapeHtml(value: string): string {
   return value

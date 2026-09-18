@@ -1,4 +1,4 @@
-import { listBookings } from "../data/repositories";
+import { listBookings } from "../data/repositories.js";
 
 export type UiBooking = {
   id?: string;

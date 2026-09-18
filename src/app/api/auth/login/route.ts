@@ -1,7 +1,7 @@
-import { HTTP_STATUS } from "../../../../lib/constants";
-import { wrapApiHandler } from "../../../../lib/api/responseHelper";
-import { isValidToken, setAdminSessionCookie } from "../../../../lib/ui-auth/session";
-import { renderLoginPage } from "../../../../ui/pages/login";
+import { HTTP_STATUS } from "../../../../lib/constants.js";
+import { wrapApiHandler } from "../../../../lib/api/responseHelper.js";
+import { isValidToken, setAdminSessionCookie } from "../../../../lib/ui-auth/session.js";
+import { renderLoginPage } from "../../../../ui/pages/login.js";
 
 async function readLoginToken(request: Request): Promise<string | null> {
   const contentType = request.headers.get("content-type") ?? "";

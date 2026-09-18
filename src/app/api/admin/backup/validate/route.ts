@@ -1,7 +1,7 @@
-import { HTTP_STATUS } from "../../../../../lib/constants";
-import { errorResponse, jsonResponse, wrapApiHandler } from "../../../../../lib/api/responseHelper";
-import { requireAdminSession } from "../../../../../lib/ui-auth/guard";
-import { validateBackupFile } from "../../../../../lib/data/backup";
+import { HTTP_STATUS } from "../../../../../lib/constants.js";
+import { errorResponse, jsonResponse, wrapApiHandler } from "../../../../../lib/api/responseHelper.js";
+import { requireAdminSession } from "../../../../../lib/ui-auth/guard.js";
+import { validateBackupFile } from "../../../../../lib/data/backup.js";
 
 async function unsafePOST(request: Request): Promise<Response> {
   const authResponse = requireAdminSession(request);

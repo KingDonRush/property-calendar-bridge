@@ -1,7 +1,7 @@
-import { getBookings, UiBooking } from "../../lib/ui/bookings";
+import { listBookings } from "../../lib/data/repositories.js";
 
-function escapeHtml(value: string | undefined | null): string {
-  if (value === undefined || value === null) return "";
+function escapeHtml(value: string): string {
+  if (!value) return "";
   return String(value)
     .replaceAll("&", "&amp;")
     .replaceAll("<", "&lt;")
@@ -10,97 +10,100 @@ function escapeHtml(value: string | undefined | null): string {
     .replaceAll("'", "&#39;");
 }
 
-function getMonthRange(date: Date) {
-  // Use UTC to ensure the ISO string matches the intended calendar dates
-  // date object passed in might be local, so we extract year/month
-  const year = date.getFullYear();
-  const month = date.getMonth(); // 0-11
-
-  const start = new Date(Date.UTC(year, month, 1, 0, 0, 0, 0));
-  // Last day of the month: month + 1 with day 0
-  const end = new Date(Date.UTC(year, month + 1, 0, 23, 59, 59, 999));
-
-  return { start, end };
-}
-
-function formatDate(iso: string | undefined): string {
-  if (!iso) return "";
+function formatDate(dateStr: string): string {
+  if (!dateStr) return "-";
   try {
-    return new Date(iso).toLocaleDateString("pt-BR");
+    // Ajuste simples para não perder o dia por fuso horário se for string YYYY-MM-DD pura
+    if (dateStr.length === 10) {
+      const portions = dateStr.split("-");
+      return `${portions[2]}/${portions[1]}/${portions[0]}`;
+    }
+    return new Date(dateStr).toLocaleDateString("pt-BR");
   } catch {
-    return iso;
+    return dateStr;
   }
 }
 
-export async function renderBookingsPage(query: URLSearchParams): Promise<string> {
-  const now = new Date();
+export async function renderBookingsPage(searchParams: URLSearchParams): Promise<string> {
+  const today = new Date();
 
-  // Simple "month=YYYY-MM" handling or default to current
-  let targetDate = now;
-  const monthParam = query.get("month"); // e.g., "2023-10"
-  if (monthParam) {
-    const [y, m] = monthParam.split("-").map(Number);
-    if (!isNaN(y) && !isNaN(m)) {
-      // Create date at noon to avoid timezone shift issues when just getting year/month
-      targetDate = new Date(y, m - 1, 15);
-    }
+  // Parametros ou Mês Atual
+  let startStr = searchParams.get("start");
+  let endStr = searchParams.get("end");
+
+  if (!startStr || !endStr) {
+    const year = today.getFullYear();
+    const month = today.getMonth();
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+
+    // Format YYYY-MM-DD ignoring timezone offset issues for local display logic
+    // Using simple formatting to avoid UTC vs Local shifts
+    startStr = `${firstDay.getFullYear()}-${String(firstDay.getMonth() + 1).padStart(2, '0')}-01`;
+    endStr = `${lastDay.getFullYear()}-${String(lastDay.getMonth() + 1).padStart(2, '0')}-${String(lastDay.getDate()).padStart(2, '0')}`;
   }
 
-  const { start, end } = getMonthRange(targetDate);
+  // Lógica para Proximo/Anterior
+  const currentStart = new Date(startStr);
+  const prevMonthStart = new Date(currentStart.getFullYear(), currentStart.getMonth() - 1, 1);
+  const prevMonthEnd = new Date(currentStart.getFullYear(), currentStart.getMonth(), 0);
 
-  // Format dates for API (ISO string usually expected, but check repository needs)
-  // Assuming repository expects ISO strings or YYYY-MM-DD
-  const rangeStart = start.toISOString();
-  const rangeEnd = end.toISOString();
+  const nextMonthStart = new Date(currentStart.getFullYear(), currentStart.getMonth() + 1, 1);
+  const nextMonthEnd = new Date(currentStart.getFullYear(), currentStart.getMonth() + 2, 0);
 
-  const bookings = await getBookings({ rangeStart, rangeEnd });
+  const fmt = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 
-  // Navigation Links
-  const prevDate = new Date(targetDate.getFullYear(), targetDate.getMonth() - 1, 1);
-  const nextDate = new Date(targetDate.getFullYear(), targetDate.getMonth() + 1, 1);
+  const prevLink = `?start=${fmt(prevMonthStart)}&end=${fmt(prevMonthEnd)}`;
+  const nextLink = `?start=${fmt(nextMonthStart)}&end=${fmt(nextMonthEnd)}`;
 
-  const toMonthStr = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+  // Título do mês (baseado no start date)
+  const monthTitle = currentStart.toLocaleDateString("pt-BR", { month: 'long', year: 'numeric' });
+  const capitalizedTitle = monthTitle.charAt(0).toUpperCase() + monthTitle.slice(1);
 
-  const prevLink = `/admin/bookings?month=${toMonthStr(prevDate)}`;
-  const nextLink = `/admin/bookings?month=${toMonthStr(nextDate)}`;
-  const currentTitle = targetDate.toLocaleDateString("pt-BR", { month: 'long', year: 'numeric' });
+  const bookings = await listBookings({ rangeStart: startStr, rangeEnd: endStr });
 
-  const rows = bookings.map(b => `
+  const header = `
+  <div class="controls-row" style="display: flex; justify-content: space-between; align-items: center; margin: 0 0 16px;">
+    <h1 style="margin: 0;">Reservas</h1>
+    <div style="display: flex; gap: 8px; align-items: center;">
+      <a href="${prevLink}" class="btn secondary pagination-btn" style="text-decoration: none;">&larr; <span class="pagination-text">Anterior</span></a>
+      <span style="font-weight: 600; min-width: 140px; text-align: center;">${capitalizedTitle}</span>
+      <a href="${nextLink}" class="btn secondary pagination-btn" style="text-decoration: none;"><span class="pagination-text">Próximo</span> &rarr;</a>
+    </div>
+  </div>`;
+
+  if (!Array.isArray(bookings) || bookings.length === 0) {
+    return `${header}
+    <div class="card muted">Nenhuma reserva encontrada para este período.</div>`;
+  }
+
+  const rows = bookings
+    .map((item: any) => {
+      return `<tr>
+  <td>${escapeHtml(item.property_id || "-")}</td>
+  <td>${escapeHtml(item.guest_name || "Não informado")}</td>
+  <td>${formatDate(item.start_date)} a ${formatDate(item.end_date)}</td>
+  <td>${escapeHtml(item.platform || "-")}</td>
+  <td>${escapeHtml(item.status || "CONFIRMED")}</td>
+</tr>`;
+    })
+    .join("");
+
+  return `${header}
+<div class="table-container">
+<table class="table">
+  <thead>
     <tr>
-      <td style="padding: 8px; border-bottom: 1px solid #eee;">${escapeHtml(b.id)}</td>
-      <td style="padding: 8px; border-bottom: 1px solid #eee;">${escapeHtml(b.guestName || "N/A")}</td>
-      <td style="padding: 8px; border-bottom: 1px solid #eee;">${escapeHtml(b.propertyId)}</td>
-      <td style="padding: 8px; border-bottom: 1px solid #eee;">
-        ${formatDate(b.startDate)} - ${formatDate(b.endDate)}
-      </td>
-      <td style="padding: 8px; border-bottom: 1px solid #eee;">${escapeHtml(b.status)}</td>
+      <th>Imóvel</th>
+      <th>Hóspede</th>
+      <th>Período</th>
+      <th>Plataforma</th>
+      <th>Status</th>
     </tr>
-  `).join("");
-
-  return `
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
-      <h1>Reservas: ${escapeHtml(currentTitle)}</h1>
-      <div>
-        <a href="${prevLink}" class="btn" style="margin-right: 8px;">&larr; Anterior</a>
-        <a href="${nextLink}" class="btn">Próximo &rarr;</a>
-      </div>
-    </div>
-
-    <div style="overflow-x: auto;">
-      <table style="width: 100%; border-collapse: collapse; text-align: left;">
-        <thead>
-          <tr style="border-bottom: 2px solid #ccc;">
-            <th style="padding: 8px;">ID</th>
-            <th style="padding: 8px;">Hóspede</th>
-            <th style="padding: 8px;">Propriedade</th>
-            <th style="padding: 8px;">Período</th>
-            <th style="padding: 8px;">Status</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${rows || '<tr><td colspan="5" style="padding: 16px; text-align: center;">Nenhuma reserva neste mês.</td></tr>'}
-        </tbody>
-      </table>
-    </div>
-  `;
+  </thead>
+  <tbody>
+    ${rows}
+  </tbody>
+</table>
+</div>`;
 }

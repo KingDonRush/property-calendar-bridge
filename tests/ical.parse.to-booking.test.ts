@@ -9,7 +9,6 @@ describe("ical/parse eventToBooking", () => {
       uid: "evt-1",
       start: new Date("2025-01-01T00:00:00-03:00"),
       end: new Date("2025-01-02T00:00:00-03:00"),
-      summary: "x",
       allDay: false
     });
 

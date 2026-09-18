@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { createAdminSessionCookieValue } from "../src/lib/ui-auth/session";
 
-const listSyncRunsMock = vi.fn(async () => [
+const listSyncRunsMock = vi.fn(async (..._args: unknown[]) => [
   {
     id: "r1",
     channel_source_id: "s1",
@@ -15,7 +15,7 @@ const listSyncRunsMock = vi.fn(async () => [
   },
 ]);
 
-const listBookingsMock = vi.fn(async () => [
+const listBookingsMock = vi.fn(async (..._args: unknown[]) => [
   {
     id: "b1",
     property_id: "p1",
@@ -32,7 +32,7 @@ vi.mock("../src/lib/data/repositories", () => {
   return {
     listSyncRuns: (...args: any[]) => listSyncRunsMock(...args),
     listBookings: (...args: any[]) => listBookingsMock(...args),
-    getAllBookings: vi.fn(async () => []),
+    getAllBookings: vi.fn(async (..._args: unknown[]) => []),
   };
 });
 

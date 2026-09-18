@@ -1,5 +1,5 @@
-import { wrapApiHandler } from "../../../../lib/api/responseHelper";
-import { clearAdminSessionCookie } from "../../../../lib/ui-auth/session";
+import { wrapApiHandler } from "../../../../lib/api/responseHelper.js";
+import { clearAdminSessionCookie } from "../../../../lib/ui-auth/session.js";
 
 async function unsafePOST(request: Request): Promise<Response> {
   const headers = new Headers({

@@ -4,7 +4,7 @@ import { fetchAndParseIcs } from "../src/lib/ical/sync";
 
 describe("ical/sync fetch+parse", () => {
   it("fetches an ICS URL and returns parsed VEVENTs", async () => {
-    const fetchFn = vi.fn(async () => new Response("BEGIN:VCALENDAR\nEND:VCALENDAR", { status: 200 }));
+    const fetchFn = vi.fn(async (..._args: unknown[]) => new Response("BEGIN:VCALENDAR\nEND:VCALENDAR", { status: 200 }));
 
     const events = await fetchAndParseIcs("https://example.com/calendar.ics", { fetchFn });
 
@@ -13,7 +13,7 @@ describe("ical/sync fetch+parse", () => {
   });
 
   it("throws on non-2xx responses", async () => {
-    const fetchFn = vi.fn(async () => new Response("nope", { status: 500, statusText: "Server Error" }));
+    const fetchFn = vi.fn(async (..._args: unknown[]) => new Response("nope", { status: 500, statusText: "Server Error" }));
 
     await expect(fetchAndParseIcs("https://example.com/calendar.ics", { fetchFn })).rejects.toThrow(/500/);
   });
@@ -21,7 +21,7 @@ describe("ical/sync fetch+parse", () => {
   it("times out and aborts the request", async () => {
     vi.useFakeTimers();
 
-    const fetchFn = vi.fn((_url: string, init?: RequestInit) => {
+    const fetchFn = vi.fn((_url: RequestInfo | URL, init?: RequestInit) => {
       const signal = init?.signal;
       return new Promise<Response>((_resolve, reject) => {
         if (!signal) return reject(new Error("missing signal"));

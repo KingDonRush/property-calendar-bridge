@@ -1,4 +1,5 @@
-import { createHttpServer } from "./httpServer";
+import "dotenv/config";
+import { createHttpServer } from "./httpServer.js";
 
 const port = Number(process.env.PORT ?? 3000);
 const server = createHttpServer();

@@ -1,6 +1,6 @@
-import { errorResponse, wrapApiHandler } from "../../../../../lib/api/responseHelper";
-import { requireAdminSession } from "../../../../../lib/ui-auth/guard";
-import { generateBackupJSON } from "../../../../../lib/data/backup";
+import { errorResponse, wrapApiHandler } from "../../../../../lib/api/responseHelper.js";
+import { requireAdminSession } from "../../../../../lib/ui-auth/guard.js";
+import { generateBackupJSON } from "../../../../../lib/data/backup.js";
 
 function getAppVersion(): string {
   const fromEnv = process.env.npm_package_version;

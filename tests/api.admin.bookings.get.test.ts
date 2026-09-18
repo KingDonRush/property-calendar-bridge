@@ -2,8 +2,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { createAdminSessionCookieValue } from "../src/lib/ui-auth/session";
 
-const listBookingsMock = vi.fn(async () => [{ id: "b1" }]);
-const getAllBookingsMock = vi.fn(async () => [{ id: "b2" }]);
+const listBookingsMock = vi.fn(async (..._args: unknown[]) => [{ id: "b1" }]);
+const getAllBookingsMock = vi.fn(async (..._args: unknown[]) => [{ id: "b2" }]);
 
 vi.mock("../src/lib/data/repositories", () => {
   return {

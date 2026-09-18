@@ -28,9 +28,9 @@ describe("data/audit wrappers", () => {
     expect(insertMock).toHaveBeenCalledWith(
       expect.objectContaining({
         action: "insert",
-        entity_type: "sync",
-        entity_id: "s1",
-        meta: expect.objectContaining({ imported: 1 })
+        table_name: "sync",
+        record_id: null,
+        new_data: { entity_id: "s1", sourceId: "s1", imported: 1 }
       })
     );
   });
@@ -44,9 +44,9 @@ describe("data/audit wrappers", () => {
     expect(insertMock).toHaveBeenCalledWith(
       expect.objectContaining({
         action: "update",
-        entity_type: "conflict",
-        entity_id: "c1",
-        meta: expect.objectContaining({ decision: "resolved" })
+        table_name: "conflict",
+        record_id: null,
+        new_data: { entity_id: "c1", decision: "resolved" }
       })
     );
   });

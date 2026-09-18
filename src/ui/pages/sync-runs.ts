@@ -1,66 +1,69 @@
-import { getRecentSyncRuns, UiSyncRun } from "../../lib/ui/syncRuns";
+import { listSyncRuns } from "../../lib/data/repositories.js";
 
-function escapeHtml(value: string | undefined | null): string {
-  if (value === undefined || value === null) return "";
-  return String(value)
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#39;");
+function escapeHtml(value: string): string {
+    return value
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#39;");
 }
 
-function formatDate(iso: string | undefined): string {
-  if (!iso) return "N/A";
-  try {
-    return new Date(iso).toLocaleString("pt-BR");
-  } catch {
-    return iso;
-  }
-}
-
-function renderRow(run: UiSyncRun): string {
-  const statusColor = run.status === "success" ? "color: green;" : "color: red;";
-  const errorMessage = run.errorMessage
-    ? `<div style="font-size: 0.85em; color: red;">${escapeHtml(run.errorMessage)}</div>`
-    : "";
-  
-  return `
-    <tr>
-      <td>${escapeHtml(run.id)}</td>
-      <td style="${statusColor} font-weight: bold;">${escapeHtml(run.status)}</td>
-      <td>${formatDate(run.startedAt)}</td>
-      <td>${run.durationMs ? (run.durationMs / 1000).toFixed(1) + "s" : "-"}</td>
-      <td>${run.conflictsCount ?? 0}</td>
-      <td>${errorMessage}</td>
-    </tr>
-  `;
+function formatDate(dateStr: string): string {
+    if (!dateStr) return "-";
+    try {
+        return new Date(dateStr).toLocaleString("pt-BR");
+    } catch {
+        return dateStr;
+    }
 }
 
 export async function renderSyncRunsPage(): Promise<string> {
-  const runs = await getRecentSyncRuns(50);
+    const runs = await listSyncRuns();
 
-  const rows = runs.map(renderRow).join("");
+    const header = `<h1 style="margin: 0 0 12px;">Histórico de Sincronização</h1>
+<p class="muted" style="margin: 0 0 12px;">Últimas 50 execuções</p>`;
 
-  return `
-    <h1 style="margin-bottom: 2rem;">Histórico de Sincronização</h1>
-    
-    <div style="overflow-x: auto;">
-      <table style="width: 100%; border-collapse: collapse; text-align: left;">
-        <thead>
-          <tr style="border-bottom: 2px solid #ccc;">
-            <th style="padding: 8px;">ID</th>
-            <th style="padding: 8px;">Status</th>
-            <th style="padding: 8px;">Início</th>
-            <th style="padding: 8px;">Duração</th>
-            <th style="padding: 8px;">Conflitos</th>
-            <th style="padding: 8px;">Detalhes</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${rows || '<tr><td colspan="6" style="padding: 16px; text-align: center;">Nenhum registro encontrado.</td></tr>'}
-        </tbody>
-      </table>
-    </div>
-  `;
+    if (!Array.isArray(runs) || runs.length === 0) {
+        return `${header}
+<div class="muted">Nenhum registro encontrado.</div>`;
+    }
+
+    const rows = runs
+        .map((run: any) => {
+            const status = run.status || "unknown";
+            const statusColor =
+                status === "success" ? "var(--color-success, green)" : status === "failed" ? "var(--color-danger, red)" : "var(--color-text-muted, gray)";
+
+            let duration = "-";
+            if (run.started_at && run.finished_at) {
+                const ms = new Date(run.finished_at).getTime() - new Date(run.started_at).getTime();
+                duration = ms < 1000 ? `${ms}ms` : `${Math.round(ms / 1000)}s`;
+            }
+
+            return `<tr>
+  <td>${formatDate(run.started_at)}</td>
+  <td><span style="color: ${statusColor}; font-weight: 500;">${escapeHtml(status)}</span></td>
+  <td>${duration}</td>
+  <td class="muted" style="font-size: 0.9em;">${escapeHtml(String(run.log_summary?.error || JSON.stringify(run.log_summary ?? {})))}</td>
+</tr>`;
+        })
+        .join("");
+
+    return `${header}
+<div class="table-container">
+<table class="table">
+  <thead>
+    <tr>
+      <th>Início</th>
+      <th>Status</th>
+      <th>Duração</th>
+      <th>Detalhes</th>
+    </tr>
+  </thead>
+  <tbody>
+    ${rows}
+  </tbody>
+</table>
+</div>`;
 }

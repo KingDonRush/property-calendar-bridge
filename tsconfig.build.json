@@ -5,5 +5,13 @@
     "outDir": "dist",
     "rootDir": "."
   },
-  "include": ["src", "scripts"]
+  "include": [
+    "src/server.ts",
+    "scripts/manual-sync.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "tests",
+    ".next"
+  ]
 }

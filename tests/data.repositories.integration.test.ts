@@ -3,10 +3,13 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 type AnyRecord = Record<string, any>;
 
 function makeThenable<T>(value: T) {
-  return {
+  const result = {
+    select: (..._args: unknown[]) => result,
+    eq: (...args: unknown[]) => { return result; },
     then: (onFulfilled: (v: T) => unknown, onRejected?: (e: unknown) => unknown) =>
       Promise.resolve(value).then(onFulfilled, onRejected)
   };
+  return result;
 }
 
 function createFromMock() {

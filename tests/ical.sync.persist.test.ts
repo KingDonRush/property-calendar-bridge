@@ -20,7 +20,7 @@ describe("ical/sync persistence", () => {
     upsertBookingMock.mockResolvedValue({ id: "b1" });
     createMappingMock.mockResolvedValue({ id: "m1" });
 
-    const { persistDecision } = await import("../src/lib/ical/sync");
+    const { persistDecision, importedBookingId } = await import("../src/lib/ical/sync");
 
     await persistDecision("source-1", {
       action: "create",
@@ -32,16 +32,16 @@ describe("ical/sync persistence", () => {
         status: "confirmed"
       } as any,
       mapping: { externalUid: "ext-1", bookingUid: "local-uid", hash: "h1" }
-    });
+    }, "p1");
 
     expect(upsertBookingMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        id: "local-uid"
+        id: importedBookingId("source-1", "ext-1"), property_id: "p1"
       })
     );
     expect(createMappingMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        booking_id: "b1",
+        booking_id: importedBookingId("source-1", "ext-1"),
         channel_source_id: "source-1",
         external_uid: "ext-1"
       })
@@ -52,7 +52,7 @@ describe("ical/sync persistence", () => {
     upsertBookingMock.mockResolvedValue({ id: "b1" });
     createMappingMock.mockResolvedValue({ id: "m1" });
 
-    const { persistDecision } = await import("../src/lib/ical/sync");
+    const { persistDecision, importedBookingId } = await import("../src/lib/ical/sync");
 
     await persistDecision("source-1", {
       action: "update",
@@ -63,7 +63,7 @@ describe("ical/sync persistence", () => {
         end_date: "2025-01-02T00:00:00.000Z",
         status: "confirmed"
       } as any
-    });
+    }, "p1");
 
     expect(upsertBookingMock).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -74,9 +74,9 @@ describe("ical/sync persistence", () => {
   });
 
   it("does nothing for skipped decisions", async () => {
-    const { persistDecision } = await import("../src/lib/ical/sync");
+    const { persistDecision, importedBookingId } = await import("../src/lib/ical/sync");
 
-    await persistDecision("source-1", { action: "skip", reason: "no_change" });
+    await persistDecision("source-1", { action: "skip", reason: "no_change" }, "p1");
 
     expect(upsertBookingMock).not.toHaveBeenCalled();
     expect(createMappingMock).not.toHaveBeenCalled();

@@ -1,6 +1,6 @@
 import crypto from "node:crypto";
 
-import { getConfig } from "../config";
+import { getAuthConfig } from "../config.js";
 
 export const ADMIN_SESSION_COOKIE_NAME = "admin_session";
 export const DEFAULT_ADMIN_SESSION_MAX_AGE_SECONDS = 60 * 60 * 24 * 7;
@@ -13,17 +13,17 @@ function safeEqualString(left: string, right: string): boolean {
 }
 
 function signAdminSessionPayload(payload: string): string {
-  const { adminUiSessionSecret } = getConfig();
+  const { adminUiSessionSecret } = getAuthConfig();
   return crypto.createHmac("sha256", adminUiSessionSecret).update(payload).digest("hex");
 }
 
 export function isValidToken(inputToken: string): boolean {
-  const { adminUiToken } = getConfig();
+  const { adminUiToken } = getAuthConfig();
   return safeEqualString(inputToken, adminUiToken);
 }
 
 export function createAdminSessionCookieValue(): string {
-  const payload = crypto.randomBytes(18).toString("hex");
+  const payload = `${Math.floor(Date.now() / 1000)}:${crypto.randomBytes(18).toString("hex")}`;
   const signature = signAdminSessionPayload(payload);
   return `${payload}.${signature}`;
 }
@@ -35,6 +35,10 @@ export function isValidAdminSessionCookieValue(value: string): boolean {
   const [payload, signature] = parts;
   if (!payload || !signature) return false;
 
+  if (!/^\d{10}:[a-f0-9]{36}$/.test(payload) || !/^[a-f0-9]{64}$/.test(signature)) return false;
+  const issuedAt = Number(payload.split(":")[0]);
+  const age = Math.floor(Date.now() / 1000) - issuedAt;
+  if (age < 0 || age >= DEFAULT_ADMIN_SESSION_MAX_AGE_SECONDS) return false;
   const expectedSignature = signAdminSessionPayload(payload);
   return safeEqualString(signature, expectedSignature);
 }
@@ -64,6 +68,7 @@ function serializeCookie(
     parts.push(`SameSite=${options.sameSite}`);
   }
 
+  if (process.env.NODE_ENV === "production") parts.push("Secure");
   return parts.join("; ");
 }
 

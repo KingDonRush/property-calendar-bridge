@@ -5,10 +5,13 @@ const queryEqMock = vi.fn();
 const queryInsertMock = vi.fn();
 
 function makeThenable<T>(value: T) {
-  return {
+  const result = {
+    select: (..._args: unknown[]) => result,
+    eq: (...args: unknown[]) => { if (typeof queryEqMock !== "undefined") queryEqMock(...args); return result; },
     then: (onFulfilled: (v: T) => unknown, onRejected?: (e: unknown) => unknown) =>
       Promise.resolve(value).then(onFulfilled, onRejected)
   };
+  return result;
 }
 
 const queryBuilder: any = {
@@ -20,7 +23,7 @@ const queryBuilder: any = {
     queryEqMock(...args);
     return makeThenable({ data: [{ id: "m1" }], error: null });
   },
-  insert: (...args: any[]) => {
+  upsert: (...args: any[]) => {
     queryInsertMock(...args);
     return makeThenable({ data: [{ id: "m1" }], error: null });
   }
@@ -45,12 +48,13 @@ describe("data/repositories (mappings)", () => {
     vi.resetModules();
   });
 
-  it("getMappingByExternalId queries booking_mappings by external_uid", async () => {
+  it("getMappingByExternalId scopes external UIDs to their channel source", async () => {
     const { getMappingByExternalId } = await import("../src/lib/data/repositories");
-    const result = await getMappingByExternalId("ext-1");
+    const result = await getMappingByExternalId("ext-1", "s1");
     expect(fromMock).toHaveBeenCalledWith("booking_mappings");
     expect(querySelectMock).toHaveBeenCalledWith("*");
     expect(queryEqMock).toHaveBeenCalledWith("external_uid", "ext-1");
+    expect(queryEqMock).toHaveBeenCalledWith("channel_source_id", "s1");
     expect(result).toEqual({ id: "m1" });
   });
 

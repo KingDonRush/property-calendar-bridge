@@ -1,4 +1,4 @@
-import type { Booking, ChannelSource } from "./types";
+import type { Booking, ChannelSource } from "./types.js";
 
 function isNonEmptyString(value: unknown): value is string {
   return typeof value === "string" && value.trim().length > 0;

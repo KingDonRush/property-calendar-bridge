@@ -18,7 +18,7 @@ export function renderHtmlHead(options: HtmlHeadOptions): string {
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>${title}</title>
-  <link rel="stylesheet" href="/assets/main.css" />
+  <link rel="stylesheet" href="/assets/main.css?v=2" />
+  <script src="/assets/client.js" defer></script>
 </head>`;
 }
-

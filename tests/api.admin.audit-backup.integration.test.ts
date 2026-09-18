@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-const listAuditLogsMock = vi.fn(async () => [{ id: "a1" }]);
+const listAuditLogsMock = vi.fn(async (..._args: unknown[]) => [{ id: "a1" }]);
 
 vi.mock("../src/lib/audit/service", () => {
   return {
@@ -8,7 +8,7 @@ vi.mock("../src/lib/audit/service", () => {
   };
 });
 
-const generateBackupJSONMock = vi.fn(async () => "{\"ok\":true}");
+const generateBackupJSONMock = vi.fn(async (..._args: unknown[]) => "{\"ok\":true}");
 vi.mock("../src/lib/data/backup", async (importOriginal) => {
   const original = (await importOriginal()) as any;
   return {

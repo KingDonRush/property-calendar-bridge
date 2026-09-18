@@ -1,7 +1,7 @@
-import { HTTP_STATUS } from "../../../../lib/constants";
-import { errorResponse, jsonResponse, wrapApiHandler } from "../../../../lib/api/responseHelper";
-import { requireAdminSession } from "../../../../lib/ui-auth/guard";
-import { listAuditLogs } from "../../../../lib/audit/service";
+import { HTTP_STATUS } from "../../../../lib/constants.js";
+import { errorResponse, jsonResponse, wrapApiHandler } from "../../../../lib/api/responseHelper.js";
+import { requireAdminSession } from "../../../../lib/ui-auth/guard.js";
+import { listAuditLogs } from "../../../../lib/audit/service.js";
 
 function parseOptionalInt(value: string | null): number | null {
   if (value === null) return null;

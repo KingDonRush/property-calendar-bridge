@@ -1,27 +1,27 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const getRecentSyncRunsMock = vi.fn(async () => [
+const getRecentSyncRunsMock = vi.fn(async (..._args: unknown[]) => [
     {
         id: "run-1",
         status: "success",
-        startedAt: "2025-01-01T10:00:00.000Z",
-        durationMs: 5000,
+        started_at: "2025-01-01T10:00:00.000Z",
+        finished_at: "2025-01-01T10:00:05.000Z",
         conflictsCount: 1,
-        errorMessage: undefined,
+        log_summary: { error: undefined },
     },
     {
         id: "run-2",
-        status: "error",
-        startedAt: "2025-01-02T10:00:00.000Z",
-        durationMs: undefined,
+        status: "failed",
+        started_at: "2025-01-02T10:00:00.000Z",
+        finished_at: undefined,
         conflictsCount: 0,
-        errorMessage: "Network error",
+        log_summary: { error: "Network error" },
     },
 ]);
 
-vi.mock("../src/lib/ui/syncRuns", () => {
+vi.mock("../src/lib/data/repositories", () => {
     return {
-        getRecentSyncRuns: (...args: any[]) => getRecentSyncRunsMock(...args),
+        listSyncRuns: getRecentSyncRunsMock,
     };
 });
 
@@ -36,15 +36,15 @@ describe("ui/pages/sync-runs", () => {
         const html = await renderSyncRunsPage();
 
         expect(html).toContain("Histórico de Sincronização");
-        expect(html).toContain("run-1");
+        expect(html).toContain("01/01/2025");
         expect(html).toContain("success");
-        expect(html).toContain("5.0s");
+        expect(html).toContain("5s");
 
-        expect(html).toContain("run-2");
-        expect(html).toContain("error");
+        expect(html).toContain("02/01/2025");
+        expect(html).toContain("failed");
         expect(html).toContain("Network error");
 
-        expect(getRecentSyncRunsMock).toHaveBeenCalledWith(50);
+        expect(getRecentSyncRunsMock).toHaveBeenCalledWith();
     });
 
     it("renders empty state when no runs found", async () => {

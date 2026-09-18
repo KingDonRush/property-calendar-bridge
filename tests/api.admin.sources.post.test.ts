@@ -2,11 +2,11 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { createAdminSessionCookieValue } from "../src/lib/ui-auth/session";
 
-const createSourceMock = vi.fn(async () => ({ id: "new" }));
+const createSourceMock = vi.fn(async (..._args: unknown[]) => ({ id: "new" }));
 
 vi.mock("../src/lib/data/repositories", () => {
   return {
-    getAllSources: vi.fn(async () => []),
+    getAllSources: vi.fn(async (..._args: unknown[]) => []),
     createSource: (...args: any[]) => createSourceMock(...args),
   };
 });

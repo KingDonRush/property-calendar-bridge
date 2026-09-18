@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const getAllSourcesMock = vi.fn(async () => [
+const getAllSourcesMock = vi.fn(async (..._args: unknown[]) => [
   {
     id: "s1",
     source_name: "Airbnb",

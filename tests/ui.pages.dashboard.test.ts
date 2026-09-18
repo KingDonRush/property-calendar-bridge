@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const getDashboardStatsMock = vi.fn(async () => ({
+const getDashboardStatsMock = vi.fn(async (..._args: unknown[]): Promise<import("../src/lib/ui/dashboardStats").DashboardStats> => ({
   health: { status: "ok", timestamp: "2025-01-01T00:00:00.000Z" },
   sourcesCount: 2,
   lastSyncRun: null,

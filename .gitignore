@@ -27,3 +27,8 @@ dist/
 
 # OS specific
 .DS_Store
+
+# Next.js and incremental TypeScript output
+.next/
+*.tsbuildinfo
+!.env.example

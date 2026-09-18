@@ -1,5 +1,5 @@
-import { HTTP_STATUS } from "../constants";
-import { errorResponse } from "./responseHelper";
+import { HTTP_STATUS } from "../constants.js";
+import { errorResponse } from "./responseHelper.js";
 
 export function getBearerToken(request: Request): string | null {
   const authorization = request.headers.get("authorization");

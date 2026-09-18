@@ -35,14 +35,14 @@ describe("ical/sync syncSource", () => {
   });
 
   it("creates a SyncRun, imports events, and finishes with success", async () => {
-    getSourceByIdMock.mockResolvedValue({ id: "source-1", source_url: "https://example.com/calendar.ics" });
+    getSourceByIdMock.mockResolvedValue({ id: "source-1", property_id: "p1", source_url: "https://example.com/calendar.ics" });
     createSyncRunMock.mockResolvedValue({ id: "run-1" });
     updateSyncRunMock.mockResolvedValue({ id: "run-1" });
     getMappingByExternalIdMock.mockResolvedValue(null);
     upsertBookingMock.mockResolvedValue({ id: "b1" });
     createMappingMock.mockResolvedValue({ id: "m1" });
 
-    const fetchFn = vi.fn(async () => {
+    const fetchFn = vi.fn(async (..._args: unknown[]) => {
       const ics = [
         "BEGIN:VCALENDAR",
         "VERSION:2.0",
@@ -73,11 +73,11 @@ describe("ical/sync syncSource", () => {
   });
 
   it("finishes SyncRun with failed on errors", async () => {
-    getSourceByIdMock.mockResolvedValue({ id: "source-1", source_url: "https://example.com/calendar.ics" });
+    getSourceByIdMock.mockResolvedValue({ id: "source-1", property_id: "p1", source_url: "https://example.com/calendar.ics" });
     createSyncRunMock.mockResolvedValue({ id: "run-1" });
     updateSyncRunMock.mockResolvedValue({ id: "run-1" });
 
-    const fetchFn = vi.fn(async () => new Response("nope", { status: 500, statusText: "Server Error" }));
+    const fetchFn = vi.fn(async (..._args: unknown[]) => new Response("nope", { status: 500, statusText: "Server Error" }));
 
     const { syncSource } = await import("../src/lib/ical/sync");
     await expect(syncSource("source-1", { fetchFn })).rejects.toThrow();

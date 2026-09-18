@@ -1,6 +1,6 @@
-import { jsonResponse, wrapApiHandler } from "../../../../lib/api/responseHelper";
-import { requireAdminSession } from "../../../../lib/ui-auth/guard";
-import { runSyncJob } from "../../../../lib/jobs/sync";
+import { jsonResponse, wrapApiHandler } from "../../../../lib/api/responseHelper.js";
+import { requireAdminSession } from "../../../../lib/ui-auth/guard.js";
+import { runSyncJob } from "../../../../lib/jobs/sync.js";
 
 async function unsafePOST(request: Request): Promise<Response> {
   const authResponse = requireAdminSession(request);

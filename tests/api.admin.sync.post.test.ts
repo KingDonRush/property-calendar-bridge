@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { createAdminSessionCookieValue } from "../src/lib/ui-auth/session";
 
-const runSyncJobMock = vi.fn(async () => ({ ok: true, results: [{ sourceId: "s1", ok: true }] }));
+const runSyncJobMock = vi.fn(async (..._args: unknown[]) => ({ ok: true, results: [{ sourceId: "s1", ok: true }] }));
 
 vi.mock("../src/lib/jobs/sync", () => {
   return {

@@ -1,7 +1,7 @@
-import { HTTP_STATUS } from "../constants";
-import { errorResponse } from "../api/responseHelper";
+import { HTTP_STATUS } from "../constants.js";
+import { errorResponse } from "../api/responseHelper.js";
 
-import { ADMIN_SESSION_COOKIE_NAME, isValidAdminSessionCookieValue } from "./session";
+import { ADMIN_SESSION_COOKIE_NAME, isValidAdminSessionCookieValue } from "./session.js";
 
 function parseCookies(headerValue: string | null): Record<string, string> {
   if (!headerValue) return {};
@@ -16,7 +16,7 @@ function parseCookies(headerValue: string | null): Record<string, string> {
       const name = cookie.slice(0, index).trim();
       const value = cookie.slice(index + 1).trim();
       if (!name) return null;
-      return [name, decodeURIComponent(value)] as const;
+      try { return [name, decodeURIComponent(value)] as const; } catch { return null; }
     })
     .filter((entry): entry is readonly [string, string] => entry !== null);
 

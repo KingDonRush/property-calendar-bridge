@@ -1,5 +1,5 @@
-import { HTTP_STATUS } from "../../../lib/constants";
-import { jsonResponse, wrapApiHandler } from "../../../lib/api/responseHelper";
+import { HTTP_STATUS } from "../../../lib/constants.js";
+import { jsonResponse, wrapApiHandler } from "../../../lib/api/responseHelper.js";
 
 function unsafeGET(_request: Request): Response {
   const payload = {

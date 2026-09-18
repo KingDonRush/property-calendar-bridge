@@ -1,7 +1,7 @@
-import nodeIcal, { type ParsedIcsComponent } from "node-ical";
+import nodeIcal from "node-ical";
 
-import { normalizeDateRange, toUtcISOString } from "../models/time";
-import { BookingStatus, type Booking } from "../models/types";
+import { normalizeDateRange, toUtcISOString } from "../models/time.js";
+import { BookingStatus, type Booking } from "../models/types.js";
 
 export type ParsedIcsEvent = {
   uid: string;
@@ -85,7 +85,7 @@ export function parseIcs(ics: string): ParsedIcsEvent[] {
     throw new IcsParseError("Invalid ICS content");
   }
 
-  let parsed: Record<string, ParsedIcsComponent>;
+  let parsed: ReturnType<typeof nodeIcal.parseICS>;
   try {
     parsed = nodeIcal.parseICS(trimmed);
   } catch (error) {

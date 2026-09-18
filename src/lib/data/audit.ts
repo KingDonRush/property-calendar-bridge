@@ -1,13 +1,18 @@
 import { randomUUID } from "node:crypto";
 
-import { getSupabaseClient } from "./supabase";
+import { getSupabaseClient } from "./supabase.js";
 
-import type { AuditEntry } from "../models/types";
+import type { AuditEntry } from "../models/types.js";
 
 export async function insertAuditLog(entry: AuditEntry): Promise<void> {
   try {
     const client = getSupabaseClient();
-    const { error } = (await client.from("audit_logs").insert(entry as any)) as {
+    const { error } = (await client.from("audit_logs").insert({
+      id: entry.id, created_at: entry.at, action: entry.action,
+      table_name: entry.entity_type,
+      record_id: /^[0-9a-f]{8}-[0-9a-f-]{27}$/i.test(entry.entity_id) ? entry.entity_id : null,
+      new_data: { ...entry.meta, entity_id: entry.entity_id },
+    })) as {
       data: unknown;
       error: unknown;
     };

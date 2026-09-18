@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { createAdminSessionCookieValue } from "../src/lib/ui-auth/session";
 
-const fetchAndParseIcsMock = vi.fn(async () => [{ uid: "u1" }, { uid: "u2" }]);
+const fetchAndParseIcsMock = vi.fn(async (..._args: unknown[]) => [{ uid: "u1" }, { uid: "u2" }]);
 
 vi.mock("../src/lib/ical/sync", () => {
   return {

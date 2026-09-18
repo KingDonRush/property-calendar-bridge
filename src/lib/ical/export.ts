@@ -1,6 +1,6 @@
 import ical, { ICalCalendarMethod } from "ical-generator";
 
-import { BookingStatus, type Booking, type Property } from "../models/types";
+import { BookingStatus, type Booking, type Property } from "../models/types.js";
 
 function bookingSummary(booking: Booking): string {
   switch (booking.status) {

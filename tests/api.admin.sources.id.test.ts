@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { createAdminSessionCookieValue } from "../src/lib/ui-auth/session";
 
-const updateSourceStatusMock = vi.fn(async () => [{ id: "s1" }]);
+const updateSourceStatusMock = vi.fn(async (..._args: unknown[]) => [{ id: "s1" }]);
 
 vi.mock("../src/lib/data/repositories", () => {
   return {
@@ -28,7 +28,7 @@ describe("api/admin/sources/[id] PUT + DELETE", () => {
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ source_name: "X" }),
     });
-    const response = await PUT(request, { params: { id: "s1" } });
+    const response = await PUT(request, { params: Promise.resolve({ id: "s1" }) });
     expect(response.status).toBe(401);
   });
 
@@ -44,7 +44,7 @@ describe("api/admin/sources/[id] PUT + DELETE", () => {
       body: JSON.stringify({ source_name: "Airbnb", refresh_rate: 30 }),
     });
 
-    const response = await PUT(request, { params: { id: "s1" } });
+    const response = await PUT(request, { params: Promise.resolve({ id: "s1" }) });
     expect(response.status).toBe(200);
     expect(updateSourceStatusMock).toHaveBeenCalledWith("s1", {
       source_name: "Airbnb",
@@ -60,7 +60,7 @@ describe("api/admin/sources/[id] PUT + DELETE", () => {
       headers: { cookie: `admin_session=${cookieValue}` },
     });
 
-    const response = await DELETE(request, { params: { id: "s1" } });
+    const response = await DELETE(request, { params: Promise.resolve({ id: "s1" }) });
     expect(response.status).toBe(204);
     expect(updateSourceStatusMock).toHaveBeenCalledWith("s1", { refresh_rate: 0 });
   });

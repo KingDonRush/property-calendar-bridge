@@ -10,7 +10,7 @@ describe("ui/components/Navigation", () => {
     expect(html).toContain('href="/admin/sync-runs"');
     expect(html).toContain('href="/admin/bookings"');
     expect(html).toContain('href="/admin/audit"');
-    expect(html).toContain('href="/admin/backup"');
+    expect(html).toContain('href="/admin/settings"');
   });
 
   it("marks the active link", () => {

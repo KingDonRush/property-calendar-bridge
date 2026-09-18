@@ -1,4 +1,4 @@
-import { listSyncRuns } from "../data/repositories";
+import { listSyncRuns } from "../data/repositories.js";
 
 export type UiSyncRun = {
   id?: string;

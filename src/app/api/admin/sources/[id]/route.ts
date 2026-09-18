@@ -1,7 +1,7 @@
-import { HTTP_STATUS } from "../../../../../lib/constants";
-import { errorResponse, jsonResponse, wrapApiHandler } from "../../../../../lib/api/responseHelper";
-import { requireAdminSession } from "../../../../../lib/ui-auth/guard";
-import { updateSourceStatus } from "../../../../../lib/data/repositories";
+import { HTTP_STATUS } from "../../../../../lib/constants.js";
+import { errorResponse, jsonResponse, wrapApiHandler } from "../../../../../lib/api/responseHelper.js";
+import { requireAdminSession } from "../../../../../lib/ui-auth/guard.js";
+import { updateSourceStatus } from "../../../../../lib/data/repositories.js";
 
 function isNonEmptyString(value: unknown): value is string {
   return typeof value === "string" && value.trim().length > 0;
@@ -22,12 +22,12 @@ function isNonNegativeInteger(value: unknown): value is number {
 
 async function unsafePUT(
   request: Request,
-  ctx: { params: { id: string } }
+  ctx: { params: Promise<{ id: string }> }
 ): Promise<Response> {
   const authResponse = requireAdminSession(request);
   if (authResponse) return authResponse;
 
-  const id = ctx.params.id;
+  const id = (await ctx.params).id;
   if (!isNonEmptyString(id)) {
     return errorResponse(400, "id is required", "BAD_REQUEST");
   }
@@ -74,12 +74,12 @@ export const PUT = wrapApiHandler(unsafePUT);
 
 async function unsafeDELETE(
   request: Request,
-  ctx: { params: { id: string } }
+  ctx: { params: Promise<{ id: string }> }
 ): Promise<Response> {
   const authResponse = requireAdminSession(request);
   if (authResponse) return authResponse;
 
-  const id = ctx.params.id;
+  const id = (await ctx.params).id;
   if (!isNonEmptyString(id)) {
     return errorResponse(400, "id is required", "BAD_REQUEST");
   }

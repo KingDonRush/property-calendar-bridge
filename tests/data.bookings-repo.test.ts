@@ -6,10 +6,13 @@ const queryLteMock = vi.fn();
 const queryUpsertMock = vi.fn();
 
 function makeThenable<T>(value: T) {
-  return {
+  const result = {
+    select: (..._args: unknown[]) => result,
+    eq: (...args: unknown[]) => { return result; },
     then: (onFulfilled: (v: T) => unknown, onRejected?: (e: unknown) => unknown) =>
       Promise.resolve(value).then(onFulfilled, onRejected)
   };
+  return result;
 }
 
 const queryBuilder: any = {
@@ -29,7 +32,7 @@ const queryBuilder: any = {
     queryUpsertMock(...args);
     return makeThenable({ data: [{ id: "b1" }], error: null });
   },
-  ...makeThenable({ data: [], error: null })
+  then: makeThenable({ data: [], error: null }).then
 };
 
 const fromMock = vi.fn(() => queryBuilder);

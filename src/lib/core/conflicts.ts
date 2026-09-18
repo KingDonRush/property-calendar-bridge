@@ -1,4 +1,4 @@
-import type { Booking } from "../models/types";
+import type { Booking } from "../models/types.js";
 
 export const ConflictSeverity = {
   Warning: "warning",

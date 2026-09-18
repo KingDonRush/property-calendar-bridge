@@ -9,7 +9,7 @@ describe("ui/utils/htmlHead renderHtmlHead", () => {
     expect(head).toContain("<title>Dashboard</title>");
     expect(head).toContain('name="viewport"');
     expect(head).toContain('rel="stylesheet"');
-    expect(head).toContain('href="/assets/main.css"');
+    expect(head).toContain('href="/assets/main.css?v=2"');
   });
 });
 

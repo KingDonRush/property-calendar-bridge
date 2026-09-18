@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const listBookingsMock = vi.fn(async () => [
+const listBookingsMock = vi.fn(async (..._args: unknown[]) => [
   {
     id: "b1",
     property_id: "p1",

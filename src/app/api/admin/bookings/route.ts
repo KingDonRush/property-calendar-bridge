@@ -1,7 +1,7 @@
-import { HTTP_STATUS } from "../../../../lib/constants";
-import { errorResponse, jsonResponse, wrapApiHandler } from "../../../../lib/api/responseHelper";
-import { requireAdminSession } from "../../../../lib/ui-auth/guard";
-import { getAllBookings, listBookings } from "../../../../lib/data/repositories";
+import { HTTP_STATUS } from "../../../../lib/constants.js";
+import { errorResponse, jsonResponse, wrapApiHandler } from "../../../../lib/api/responseHelper.js";
+import { requireAdminSession } from "../../../../lib/ui-auth/guard.js";
+import { getAllBookings, listBookings } from "../../../../lib/data/repositories.js";
 
 function isPlainObject(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);

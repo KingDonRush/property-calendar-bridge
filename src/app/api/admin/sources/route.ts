@@ -1,7 +1,7 @@
-import { HTTP_STATUS } from "../../../../lib/constants";
-import { errorResponse, jsonResponse, wrapApiHandler } from "../../../../lib/api/responseHelper";
-import { requireAdminSession } from "../../../../lib/ui-auth/guard";
-import { createSource, getAllSources } from "../../../../lib/data/repositories";
+import { HTTP_STATUS } from "../../../../lib/constants.js";
+import { errorResponse, jsonResponse, wrapApiHandler } from "../../../../lib/api/responseHelper.js";
+import { requireAdminSession } from "../../../../lib/ui-auth/guard.js";
+import { createSource, getAllSources } from "../../../../lib/data/repositories.js";
 
 function isNonEmptyString(value: unknown): value is string {
   return typeof value === "string" && value.trim().length > 0;

@@ -1,0 +1,202 @@
+# PROMPT (para Antigravity) — Migrar Frontend raiz (Node + HTML) para Next.js + React + Tailwind (com Debug-Friendly Markers)
+
+# Overview
+O projeto atual utiliza um frontend "raiz" baseado em renderização manual de strings HTML (`Server-Side Rendering` artesanal) no Node.js. Embora funcional e leve, essa abordagem limita a interatividade, dificulta a manutenção do CSS (Vanilla) e impede o uso de um ecossistema moderno de componentes.
+
+O objetivo deste PRD é guiar a migração para **Next.js (App Router)** com **React** e **Tailwind CSS**. A nova arquitetura manterá a simplicidade operacional (ainda rodando no mesmo servidor ou similar), mas elevará a experiência de desenvolvimento (DX) e de uso (UX), introduzindo estados reativos (loading, toasts, otimistic updates) e uma estrutura de código profissional e escalável.
+
+Este documento serve como a **Source of Truth** para a refatoração, garantindo que nenhuma funcionalidade se perca ("Feature Parity") e que a nova codebase já nasça pronta para **Debug com IA** através de marcadores semânticos rigorosos.
+
+# Core Features
+
+## 1. Painel Administrativo (Admin Shell)
+- **O que faz**: Interface unificada com Sidebar/Header, navegação e proteção de rotas.
+- **Por que importa**: Contexto visual onde o gestor opera o sistema.
+- **Como funciona**: `Layout` persistente no Next.js (`layout.tsx`) com Verificação de Sessão (Middleware).
+
+## 2. Gestão de Fontes (Sources Management)
+- **O que faz**: CRUD de links iCal (Airbnb, Booking, etc.) e teste de conexão.
+- **Por que importa**: É a entrada de dados do sistema. Sem fontes, não há calendário.
+- **Como funciona**: Lista interativa (`data-ui="SourcesTable"`) com botões de ação e modais/formulários (`data-ui="SourceForm"`) para adicionar/editar.
+
+## 3. Orquestração de Sync (Manual & Histórico)
+- **O que faz**: Botão "Sincronizar Agora" e visualização de logs passados (`SyncRuns`).
+- **Por que importa**: Permite ao usuário forçar atualizações antes de checar disponibilidade e auditar falhas.
+- **Como funciona**: Server Actions para trigger seguro e tabelas com status coloridos (`data-state`) para logs.
+
+## 4. Visualização de Reservas e Auditoria
+- **O que faz**: Listagem de `Bookings` consolidados e logs de `Audit`.
+- **Por que importa**: Visibilidade do que está bloqueado no calendário mestre e quem fez o quê.
+- **Como funciona**: Tabelas filtráveis servidor-lado (Server Components) com paginação via URL search params.
+
+## 5. Autenticação e Configurações
+- **O que faz**: Login simples via Token e exportação de backups.
+- **Por que importa**: Segurança básica (não expor admin publicamente) e segurança de dados (backup).
+- **Como funciona**: Middleware de proteção de rotas `/admin/*` e API Routes para download de JSON.
+
+# User Experience
+
+## Personas
+- **O Gestor (Host)**: Quer ver rapidamente se os calendários estão "verdes" (sincronizados) e adicionar um bloqueio manual se necessário. Não quer lidar com JSONs crus.
+- **O Desenvolvedor (Maintainer)**: Quer debugar falhas de sync olhando logs detalhados e ter certeza que a aplicação está saudável (`/health`).
+
+## Key Flows
+1.  **Login Rápido**: Acesso `/admin` -> Redireciona Login -> Insere Token -> Dashboard.
+2.  **Verificar Sync**: Dashboard mostra "Última sync: 2 min atrás" (Verde). Se erro, clica para ver detalhes.
+3.  **Adicionar Canal**: Aba Fontes -> "Nova Fonte" -> Cola URL -> "Testar" -> Salvar. Feedback visual imediato.
+
+## UI/UX Considerations
+- **Feedback Otimista**: Ao clicar em "Sync Now", o botão entra em loading (`data-state="submitting"`) instantaneamente.
+- **Estados Vazios**: Tabelas sem dados devem mostrar Empty States explicativos, não linhas em branco.
+- **Responsividade**: O layout deve funcionar decentemente em mobile (para checagem rápida) e desktop.
+
+# Technical Architecture
+
+## System Components
+- **Framework**: Next.js 14+ (App Router).
+- **Estilização**: Tailwind CSS (Utility-first).
+- **Ícones**: Lucide React (consistência visual).
+- **State Management**: React Server Components (Data Fetching) + React Hooks (Client Interactivity).
+
+## Arquitetura de Pastas (App Router)
+```text
+src/
+  app/
+    (auth)/login/page.tsx      -> Rota pública de login
+    admin/                     -> Grupo de rotas protegidas
+      layout.tsx               -> Shell do Admin (Sidebar, Auth Check)
+      dashboard/page.tsx       -> Dashboard
+      sources/page.tsx         -> Gerenciamento de seeds
+      sync-runs/page.tsx       -> Logs
+      ...
+    api/                       -> API Routes (existentes mantidas ou adaptadas)
+    globals.css                -> Tailwind directives
+    layout.tsx                 -> Root layout
+  ui/                          -> Componentes React Reutilizáveis
+    components/                -> Atoms/Molecules (Button, Card, Table)
+    features/                  -> Organismos (SourcesList, SyncButton)
+  lib/                         -> Lógica de domínio (mantida do projeto atual)
+```
+
+## Data Models & Fetching
+- **Server Components**: Assumem o papel das antigas funções `renderPage`. Fazem chamadas diretas ao DB/Services no servidor.
+- **Server Actions**: Substituem os `POST` endpoints de formulários para mutações (adicionar fonte, trigger sync).
+- **APIs Existentes**: As rotas em `src/app/api` continuarão existindo para atender chamadas externas (Cron Jobs, iCal Feed), mas a UI interna preferirá Server Actions.
+
+## API & Auth
+- **Middleware.ts**: Interceptará rotas `/admin` para verificar cookie de sessão.
+- **Secrets**: Token de Admin (`ADMIN_UI_TOKEN`) verificado no server-side.
+
+# Development Roadmap
+
+## Phase 1: Setup & Foundation (Skeleton)
+- Instalar Next.js, React, React DOM, Tailwind, PostCSS.
+- Configurar `postcss.config.js` e `tailwind.config.ts`.
+- Criar `src/app/layout.tsx` e `src/app/globals.css`.
+- Migrar `mainCss.ts` para classes Tailwind.
+
+## Phase 2: Auth & Shell
+- Implementar `/login` page (Client Component).
+- Configurar Middleware de proteção.
+- Criar `AdminLayout` (Sidebar + Header).
+- **Entrega**: Consigo logar e ver um esqueleto vazio do admin.
+
+## Phase 3: Core Features Migration (The "Meat")
+- Migrar **Dashboard** (Cards de resumo).
+- Migrar **Fontes** (Lista e Forms).
+- Migrar **Sync Runs** (Histórico).
+- **Regra**: Cada página portada deve ter seus `data-ui` implementados.
+
+## Phase 4: Operations & Extras
+- Migrar **Reservas** (Tabela).
+- Migrar **Auditoria & Backup**.
+- Polimento de UI (Loading skeletons, Toasts de erro).
+
+# Logical Dependency Chain
+1.  **Environment**: O ambiente Next.js precisa rodar (`npm run dev`) em paralelo ou substituindo o server atual.
+2.  **Auth**: Sem autenticação migrada, não conseguimos acessar as páginas protegidas para testar.
+3.  **Components Base**: Precisamos de componentes base (Card, Button, Input) com `data-ui` antes de montar as páginas complexas.
+4.  **Pages**: As páginas são compostas pelos componentes.
+
+# Risks and Mitigations
+
+- **Risco**: "Quebrar" a API existente que serve o iCal público.
+    - *Mitigação*: Manter `src/app/api` intacto e garantir que o `next.config.js` ou o servidor customizado (se usado) saiba rotear `/api/*` corretamente.
+- **Risco**: Perda de performance no "Cold Start" de Serverless (se deployado assim).
+    - *Mitigação*: O projeto é leve; usar `loading.tsx` para feedback visual imediato.
+- **Risco**: CSS global vazar ou quebrar layout.
+    - *Mitigação*: Tailwind é isolado por natureza (classes utilitárias). Removeremos `mainCss.ts` completamente.
+
+# Appendix
+
+## Padrão de Debug Markers (Obrigatório)
+
+Todo componente semântico deve possuir atributos `data-ui` para fácil identificação por Agentes de IA e testes E2E.
+
+| Atributo | Descrição | Exemplo |
+| :--- | :--- | :--- |
+| `data-ui` | Nome único do componente no contexto da página. PascalCase. | `data-ui="LoginForm"`, `data-ui="SourceCard"` |
+| `data-state` | Estado atual do componente. | `loading`, `empty`, `submitting`, `error`, `success`, `idle` |
+| `data-key` | (Opcional) Identificador único do item (ID). | `data-key="source_123"` |
+
+### Exemplos Aplicados
+
+**Botão de Sync:**
+```tsx
+<button
+  data-ui="SyncNowButton"
+  data-state={isSyncing ? "submitting" : "idle"}
+  className="..."
+>
+  {isSyncing ? "Sincronizando..." : "Sincronizar Agora"}
+</button>
+```
+
+**Tabela de Fontes:**
+```tsx
+<tbody data-ui="SourcesTableBody" data-state={sources.length === 0 ? "empty" : "ready"}>
+  {sources.map(source => (
+    <tr key={source.id} data-ui="SourceRow" data-key={source.id}>
+      ...
+    </tr>
+  ))}
+</tbody>
+```
+
+## Tabela de Mapeamento (Migration Checklist)
+
+| Rota Atual (Node) | Arquivo Fonte (Atual) | Nova Rota (Next.js) | Componentes React Previstos |
+| :--- | :--- | :--- | :--- |
+| `/login` | `src/ui/pages/login.ts` | `/login` | `LoginForm` |
+| `/admin/dashboard` | `src/ui/pages/Dashboard.ts` | `/admin/dashboard` | `DashboardStats`, `RecentSyncsCard` |
+| `/admin/sources` | `src/ui/pages/sources.ts` | `/admin/sources` | `SourcesList`, `AddSourceModal`, `SourceItem` |
+| `/admin/sync-runs` | `src/ui/pages/sync-runs.ts` | `/admin/sync-runs` | `SyncRunTable`, `SyncRunDetail` |
+| `/admin/bookings` | `src/ui/pages/bookings.ts` | `/admin/bookings` | `BookingsTable`, `DateRangeFilter` |
+| `/admin/audit` | `src/ui/pages/audit.ts` | `/admin/audit` | `AuditLogTable` |
+| `/admin/settings` | `src/ui/pages/settings.ts` | `/admin/settings` | `BackupCard`, `ProfileSettings` |
+| Layout Global | `src/ui/components/Layout.ts` | `app/admin/layout.tsx` | `AdminSidebar`, `TopNav`, `PageContainer` |
+
+## Checklist de Migração
+
+### Setup
+- [ ] Inicializar Next.js no projeto.
+- [ ] Configurar Tailwind CSS.
+- [ ] Criar aliases de importação (`@/components`, `@/lib`).
+
+### Foundation
+- [ ] Criar `AdminLayout` com Sidebar responsiva.
+- [ ] Implementar `Button`, `Input`, `Card` (Atomic Design) com `data-ui`.
+- [ ] Portar lógica de Auth (Middleware).
+
+### Features
+- [ ] **Dashboard**: Portar cards de status.
+- [ ] **Sources**: Portar listagem e formulário de adição.
+- [ ] **Sync**: Reimplementar trigger de sync como Server Action.
+- [ ] **Logs**: Tabela de histórico de sync.
+- [ ] **Bookings**: Tabela de reservas.
+- [ ] **Settings**: Seção de backup e download.
+
+### Finalização
+- [ ] Remover arquivos antigos de `src/ui/pages/*.ts`.
+- [ ] Validar build de produção (`npm run build`).
+- [ ] Testar fluxo E2E manual: Login -> Sync -> Ver Resultado.

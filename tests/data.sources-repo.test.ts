@@ -5,10 +5,13 @@ const queryUpdateMock = vi.fn();
 const queryEqMock = vi.fn();
 
 function makeThenable<T>(value: T) {
-  return {
+  const result = {
+    select: (..._args: unknown[]) => result,
+    eq: (...args: unknown[]) => { if (typeof queryEqMock !== "undefined") queryEqMock(...args); return result; },
     then: (onFulfilled: (v: T) => unknown, onRejected?: (e: unknown) => unknown) =>
       Promise.resolve(value).then(onFulfilled, onRejected)
   };
+  return result;
 }
 
 const queryBuilder: any = {

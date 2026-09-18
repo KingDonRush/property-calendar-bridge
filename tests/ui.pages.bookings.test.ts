@@ -1,19 +1,19 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const getBookingsMock = vi.fn(async () => [
+const getBookingsMock = vi.fn(async (_range: { rangeStart: string; rangeEnd: string }) => [
     {
         id: "bk-1",
-        guestName: "John Doe",
-        propertyId: "prop-1",
-        startDate: "2025-01-10",
-        endDate: "2025-01-15",
+        guest_name: "John Doe",
+        property_id: "prop-1",
+        start_date: "2025-01-10",
+        end_date: "2025-01-15",
         status: "confirmed",
     },
 ]);
 
-vi.mock("../src/lib/ui/bookings", () => {
+vi.mock("../src/lib/data/repositories", () => {
     return {
-        getBookings: (...args: any[]) => getBookingsMock(...args),
+        listBookings: getBookingsMock,
     };
 });
 
@@ -28,7 +28,7 @@ describe("ui/pages/bookings", () => {
         const params = new URLSearchParams();
         const html = await renderBookingsPage(params);
 
-        expect(html).toContain("Reservas:");
+        expect(html).toContain("Reservas");
         expect(html).toContain("John Doe");
         expect(html).toContain("prop-1");
         expect(html).toContain("confirmed");
@@ -40,9 +40,9 @@ describe("ui/pages/bookings", () => {
         expect(args.rangeEnd).toBeDefined();
     });
 
-    it("respects month query param", async () => {
+    it("respects explicit date range query params", async () => {
         const { renderBookingsPage } = await import("../src/ui/pages/bookings");
-        const params = new URLSearchParams("month=2023-12");
+        const params = new URLSearchParams("start=2023-12-01&end=2023-12-31");
         await renderBookingsPage(params);
 
         const args = getBookingsMock.mock.calls[0][0];

@@ -21,7 +21,7 @@ export function renderNavigation(activePath: string): string {
     { href: "/admin/sync-runs", label: "Sync Runs" },
     { href: "/admin/bookings", label: "Reservas" },
     { href: "/admin/audit", label: "Auditoria" },
-    { href: "/admin/backup", label: "Backup" },
+    { href: "/admin/settings", label: "Configurações" },
   ];
 
   const html = links

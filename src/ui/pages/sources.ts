@@ -1,4 +1,4 @@
-import { getAllSources } from "../../lib/data/repositories";
+import { getAllSources } from "../../lib/data/repositories.js";
 
 function escapeHtml(value: string): string {
   return value
@@ -18,28 +18,30 @@ function toNumberOrNull(value: unknown): number | null {
 }
 
 function renderForm(): string {
+  const inputStyle = 'width: 100%; box-sizing: border-box; background: #0d1530; color: #f2f5ff; border: 1px solid #2a3766; padding: 8px 12px; border-radius: 10px;';
+
   return `<form id="sourceForm" class="card" style="margin: 0 0 16px;">
-  <div style="display: grid; gap: 12px; grid-template-columns: 180px 1fr 2fr 140px;">
+  <div style="display: grid; gap: 16px; grid-template-columns: 1fr 2fr;">
     <label>
       <div class="muted" style="margin: 0 0 4px;">Property ID</div>
-      <input class="input" name="property_id" type="text" required />
+      <input class="input" name="property_id" type="text" required placeholder="Ex: 12345" style="${inputStyle} max-width: 200px;" />
     </label>
     <label>
       <div class="muted" style="margin: 0 0 4px;">Nome</div>
-      <input class="input" name="source_name" type="text" required />
+      <input class="input" name="source_name" type="text" required placeholder="Ex: Airbnb - Casa de Praia" style="${inputStyle}" />
     </label>
-    <label>
+    <label style="grid-column: 1 / -1;">
       <div class="muted" style="margin: 0 0 4px;">iCal URL</div>
-      <input class="input" name="source_url" type="url" required />
+      <input class="input" name="source_url" type="url" required placeholder="Ex: https://www.airbnb.com/calendar/ical/..." style="${inputStyle}" />
     </label>
     <label>
       <div class="muted" style="margin: 0 0 4px;">Sync (min)</div>
-      <input class="input" name="refresh_rate" type="number" min="0" step="1" value="30" required />
+      <input class="input" name="refresh_rate" type="number" min="0" step="1" value="30" required placeholder="30" style="${inputStyle} max-width: 120px;" />
     </label>
-  </div>
-  <div style="display: flex; gap: 8px; margin-top: 12px;">
-    <button class="btn" type="submit">Salvar</button>
-    <button class="btn secondary" type="button" id="testSourceBtn">Testar fonte</button>
+    <div style="display: flex; gap: 8px; align-items: flex-end;">
+      <button class="btn" type="submit" style="height: 42px;">Salvar</button>
+      <button class="btn secondary" type="button" id="testSourceBtn" style="height: 42px;">Testar</button>
+    </div>
   </div>
 </form>`;
 }
@@ -177,6 +179,7 @@ ${script}
   return `${header}
 ${form}
 ${alert}
+<div class="table-container">
 <table class="table">
   <thead>
     <tr>
@@ -191,6 +194,7 @@ ${alert}
     ${rows}
   </tbody>
 </table>
+</div>
 ${script}`;
 }
 

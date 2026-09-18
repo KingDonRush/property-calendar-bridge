@@ -1,0 +1,21 @@
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_PASSWORD: disposable-test-only
+    tmpfs: /var/lib/postgresql/data
+    healthcheck:
+      test: [CMD-SHELL, pg_isready -U postgres]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+  rest:
+    image: postgrest/postgrest:v12.2.3
+    depends_on:
+      db: {condition: service_healthy}
+    environment:
+      PGRST_DB_URI: postgres://postgres:disposable-test-only@db:5432/postgres
+      PGRST_DB_ANON_ROLE: service_role
+      PGRST_DB_SCHEMAS: public
+      PGRST_JWT_SECRET: disposable-test-secret-not-for-production-123
+    ports: ['127.0.0.1:55438:3000']

@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const getAllSourcesMock = vi.fn(async () => [{ id: "s1" }, { id: "s2" }]);
-const listSyncRunsMock = vi.fn(async () => [
+const getAllSourcesMock = vi.fn(async (..._args: unknown[]) => [{ id: "s1" }, { id: "s2" }]);
+const listSyncRunsMock = vi.fn(async (..._args: unknown[]) => [
   { id: "r1", started_at: "2025-01-01T00:00:00.000Z", status: "success" },
 ]);
 

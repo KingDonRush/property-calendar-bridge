@@ -1,21 +1,14 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
-let client: SupabaseClient | undefined;
+import { getDatabaseConfig } from "../config.js";
 
-function requiredEnv(name: string): string {
-  const value = process.env[name];
-  if (!value) {
-    throw new Error(`Missing required env var: ${name}`);
-  }
-  return value;
-}
+let client: SupabaseClient | undefined;
 
 export function getSupabaseClient(): SupabaseClient {
   if (client) return client;
 
-  const url = requiredEnv("NEXT_PUBLIC_SUPABASE_URL");
-  const anonKey = requiredEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY");
-  client = createClient(url, anonKey);
+  const { supabaseUrl, supabaseKey } = getDatabaseConfig();
+  client = createClient(supabaseUrl, supabaseKey);
   return client;
 }
 

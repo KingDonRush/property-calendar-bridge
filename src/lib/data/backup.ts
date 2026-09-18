@@ -1,4 +1,4 @@
-import { getAllBookings, getAllMappings, getAllSources } from "./repositories";
+import { getAllBookings, getAllMappings, getAllSources } from "./repositories.js";
 
 export type SystemState = {
   sources: unknown[];

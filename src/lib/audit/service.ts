@@ -1,4 +1,4 @@
-import { getSupabaseClient } from "../data/supabase";
+import { getSupabaseClient } from "../data/supabase.js";
 
 export type ListAuditLogsArgs = {
   limit: number;

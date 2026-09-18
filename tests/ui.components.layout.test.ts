@@ -12,7 +12,7 @@ describe("ui/components/Layout renderLayout", () => {
 
     expect(html.toLowerCase()).toContain("<!doctype html>");
     expect(html).toContain("<title>Dashboard</title>");
-    expect(html).toContain('href="/assets/main.css"');
+    expect(html).toContain('href="/assets/main.css?v=2"');
     expect(html).toContain('href="/admin/sources"');
     expect(html).toContain("<p>Hello</p>");
   });

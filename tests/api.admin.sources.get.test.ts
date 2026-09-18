@@ -4,7 +4,7 @@ import { createAdminSessionCookieValue } from "../src/lib/ui-auth/session";
 
 vi.mock("../src/lib/data/repositories", () => {
   return {
-    getAllSources: vi.fn(async () => [{ id: "1" }, { id: "2" }]),
+    getAllSources: vi.fn(async (..._args: unknown[]) => [{ id: "1" }, { id: "2" }]),
   };
 });
 

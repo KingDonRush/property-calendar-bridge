@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const listSyncRunsMock = vi.fn(async () => [
+const listSyncRunsMock = vi.fn(async (..._args: unknown[]) => [
   {
     id: "run-1",
     status: "success",

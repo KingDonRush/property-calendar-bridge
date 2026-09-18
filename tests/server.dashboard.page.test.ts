@@ -1,4 +1,7 @@
-import { afterEach, describe, expect, it } from "vitest";
+vi.mock("../src/lib/data/repositories", () => ({
+  getAllSources: async () => [], listSyncRuns: async () => []
+}));
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { createHttpServer } from "../src/httpServer";
 

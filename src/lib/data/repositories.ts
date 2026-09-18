@@ -1,4 +1,4 @@
-import { getSupabaseClient } from "./supabase";
+import { getSupabaseClient } from "./supabase.js";
 
 export type ListBookingsArgs = {
   rangeStart: string;
@@ -22,10 +22,10 @@ export async function upsertBooking(payload: unknown): Promise<unknown> {
   const client = getSupabaseClient();
   const { data, error } = (await client
     .from("bookings")
-    .upsert(payload as any, { onConflict: "id" })) as {
-    data: unknown;
-    error: unknown;
-  };
+    .upsert(payload as any, { onConflict: "id" }).select()) as {
+      data: unknown;
+      error: unknown;
+    };
   if (error) throw error;
   return data;
 }
@@ -52,7 +52,7 @@ export async function getAllBookings(): Promise<unknown[]> {
 
 export async function createSource(payload: unknown): Promise<unknown> {
   const client = getSupabaseClient();
-  const { data, error } = (await client.from("channel_sources").insert(payload as any)) as {
+  const { data, error } = (await client.from("channel_sources").insert(payload as any).select()) as {
     data: unknown;
     error: unknown;
   };
@@ -74,12 +74,12 @@ export async function updateSourceStatus(
   return data;
 }
 
-export async function getMappingByExternalId(externalUid: string): Promise<unknown> {
+export async function getMappingByExternalId(externalUid: string, sourceId: string): Promise<unknown> {
   const client = getSupabaseClient();
   const { data, error } = (await client
     .from("booking_mappings")
     .select("*")
-    .eq("external_uid", externalUid)) as { data: unknown; error: unknown };
+    .eq("external_uid", externalUid).eq("channel_source_id", sourceId)) as { data: unknown; error: unknown };
   if (error) throw error;
   if (Array.isArray(data)) return data[0] ?? null;
   return data ?? null;
@@ -87,7 +87,7 @@ export async function getMappingByExternalId(externalUid: string): Promise<unkno
 
 export async function createMapping(payload: unknown): Promise<unknown> {
   const client = getSupabaseClient();
-  const { data, error } = (await client.from("booking_mappings").insert(payload as any)) as {
+  const { data, error } = (await client.from("booking_mappings").upsert(payload as any, { onConflict: "channel_source_id,external_uid" }).select()) as {
     data: unknown;
     error: unknown;
   };
@@ -140,7 +140,7 @@ export async function getBookingById(id: string): Promise<unknown> {
 
 export async function createSyncRun(payload: unknown): Promise<unknown> {
   const client = getSupabaseClient();
-  const { data, error } = (await client.from("sync_runs").insert(payload as any)) as {
+  const { data, error } = (await client.from("sync_runs").insert(payload as any).select()) as {
     data: unknown;
     error: unknown;
   };

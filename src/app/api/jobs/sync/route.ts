@@ -1,8 +1,8 @@
-import { HTTP_STATUS } from "../../../../lib/constants";
-import { getCronSecretToken } from "../../../../lib/env";
-import { runSyncJob } from "../../../../lib/jobs/sync";
-import { errorResponse, jsonResponse, wrapApiHandler } from "../../../../lib/api/responseHelper";
-import { requireJobsAuth } from "../../../../lib/api/auth";
+import { HTTP_STATUS } from "../../../../lib/constants.js";
+import { getCronSecretToken } from "../../../../lib/env.js";
+import { runSyncJob } from "../../../../lib/jobs/sync.js";
+import { errorResponse, jsonResponse, wrapApiHandler } from "../../../../lib/api/responseHelper.js";
+import { requireJobsAuth } from "../../../../lib/api/auth.js";
 
 async function unsafePOST(request: Request): Promise<Response> {
   const expectedToken = getCronSecretToken();

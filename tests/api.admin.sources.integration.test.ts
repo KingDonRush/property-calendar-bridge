@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const sourcesState: any[] = [];
 
-const getAllSourcesMock = vi.fn(async () => sourcesState);
+const getAllSourcesMock = vi.fn(async (..._args: unknown[]) => sourcesState);
 const createSourceMock = vi.fn(async (payload: any) => {
   const created = { id: "s1", ...payload };
   sourcesState.push(created);
@@ -13,12 +13,12 @@ const updateSourceStatusMock = vi.fn(async (_id: string, patch: any) => [{ id: "
 vi.mock("../src/lib/data/repositories", () => {
   return {
     getAllSources: (...args: any[]) => getAllSourcesMock(...args),
-    createSource: (...args: any[]) => createSourceMock(...args),
-    updateSourceStatus: (...args: any[]) => updateSourceStatusMock(...args),
+    createSource: createSourceMock,
+    updateSourceStatus: updateSourceStatusMock,
   };
 });
 
-const fetchAndParseIcsMock = vi.fn(async () => [{ uid: "u1" }, { uid: "u2" }, { uid: "u3" }]);
+const fetchAndParseIcsMock = vi.fn(async (..._args: unknown[]) => [{ uid: "u1" }, { uid: "u2" }, { uid: "u3" }]);
 vi.mock("../src/lib/ical/sync", () => {
   return {
     fetchAndParseIcs: (...args: any[]) => fetchAndParseIcsMock(...args),
