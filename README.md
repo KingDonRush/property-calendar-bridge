@@ -1,11 +1,26 @@
 # Property Calendar Bridge
 
-A booking-calendar synchronization service that brings external iCalendar feeds
-into canonical property bookings and publishes a consolidated occupancy calendar.
-It gives an operator a traceable import history: which source supplied an event,
-which booking it maps to, what changed and whether synchronization succeeded.
+A booking-calendar integration service that imports external iCalendar feeds,
+reconciles them into persistent property bookings and publishes a consolidated
+occupancy calendar.
 
-## From source calendars to occupancy
+**TypeScript · Next.js · PostgreSQL · Supabase · iCalendar**
+
+**Engineering evidence:** deterministic reconciliation, sync history, authenticated
+admin operations, HTTP/unit tests and disposable-database verification.
+
+## System flow
+
+```mermaid
+flowchart LR
+  A[External iCalendar feeds] --> B[Parser]
+  B --> C[Source-scoped reconciliation]
+  C --> D[(Postgres / Supabase)]
+  D --> E[Bookings + mappings + sync history]
+  D --> F[Consolidated occupancy calendar]
+```
+
+## What it solves
 
 **Property → iCalendar sources → fetch / parse → source-scoped reconciliation →
 booking mappings → sync runs → consolidated calendar**
